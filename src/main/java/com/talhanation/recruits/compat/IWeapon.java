@@ -7,6 +7,7 @@ import net.minecraft.world.entity.projectile.AbstractHurtingProjectile;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 
 public interface IWeapon {
     Item getWeapon();
@@ -34,6 +35,12 @@ public interface IWeapon {
                 stack.getDescriptionId().equals("item.musketmod.blunderbuss") ||
                 stack.getDescriptionId().equals("item.musketmod.cartridge") ||
                 stack.getDescriptionId().equals("item.musketmod.pistol");
+    }
+
+    static boolean isCGMWeapon(ItemStack stack){
+        String mod = stack.getItem().getCreatorModId(stack);
+        if(mod != null && mod.equals("cgm")) return true;
+        return RecruitsServerConfig.AdditionalGunItems.get().contains(stack.getItem().getRegistryName().toString());
     }
 
     boolean isLoaded(ItemStack stack);

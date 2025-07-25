@@ -136,7 +136,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         this.setGroup(2);
 
         if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
-            if(isMusketModLoaded && IWeapon.isMusketModWeapon(this.getMainHandItem())){
+            if((isMusketModLoaded && IWeapon.isMusketModWeapon(this.getMainHandItem())) || IWeapon.isCGMWeapon(this.getMainHandItem())){
                 int i = this.getRandom().nextInt(32);
                 ItemStack arrows = ForgeRegistries.ITEMS.getDelegateOrThrow(ResourceLocation.tryParse("musketmod:cartridge")).get().getDefaultInstance();
                 arrows.setCount(14 + i);
@@ -157,7 +157,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     }
     @Override
     public boolean wantsToPickUp(@NotNull ItemStack itemStack) {
-        if(isMusketModLoaded && IWeapon.isMusketModWeapon(itemStack)) return true;
+        if((isMusketModLoaded && IWeapon.isMusketModWeapon(itemStack)) || IWeapon.isCGMWeapon(itemStack)) return true;
         else if ((itemStack.getItem() instanceof BowItem || itemStack.getItem() instanceof ProjectileWeaponItem || itemStack.getItem() instanceof SwordItem) && this.getMainHandItem().isEmpty()){
             return !hasSameTypeOfItem(itemStack);
         }

@@ -18,6 +18,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -459,6 +460,30 @@ public class TeamEvents {
         currencyItemStack = holder.map(itemHolder -> itemHolder.value().getDefaultInstance()).orElseGet(Items.EMERALD::getDefaultInstance);
 
         return currencyItemStack;
+    }
+
+    public static ItemStack getCurrencyForMob(EntityType<?> type){
+        if(RecruitsServerConfig.PerMobCurrency.get()){
+            ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(type);
+            if(id != null){
+                for(String entry : RecruitsServerConfig.MobCurrencyMap.get()){
+                    String[] parts = entry.split("=", 2);
+                    if(parts.length == 2 && parts[0].equals(id.toString())){
+                        ResourceLocation itemId = ResourceLocation.tryParse(parts[1]);
+                        if(itemId != null && ForgeRegistries.ITEMS.containsKey(itemId)){
+                            return ForgeRegistries.ITEMS.getValue(itemId).getDefaultInstance();
+                        }
+                    }
+                }
+            }
+        }
+        return getCurrency();
+    }
+
+    public static boolean isControlledMob(EntityType<?> type){
+        if(RecruitsServerConfig.UniversalMobControl.get()) return true;
+        ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(type);
+        return id != null && RecruitsServerConfig.ControlledMobIds.get().contains(id.toString());
     }
     public static boolean playerHasEnoughEmeralds(ServerPlayer player, int price){
         Inventory playerInv = player.getInventory();

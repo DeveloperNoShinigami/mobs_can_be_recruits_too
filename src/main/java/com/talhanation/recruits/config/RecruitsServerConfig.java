@@ -68,6 +68,12 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue RecruitsChunkLoading;
     public static ForgeConfigSpec.BooleanValue UpdateCheckerServerside;
     public static ForgeConfigSpec.BooleanValue CompatCorpseMod;
+    public static ForgeConfigSpec.BooleanValue UniversalMobControl;
+    public static ForgeConfigSpec.BooleanValue ReplaceMobAI;
+    public static ForgeConfigSpec.ConfigValue<List<String>> AdditionalGunItems;
+    public static ForgeConfigSpec.BooleanValue PerMobCurrency;
+    public static ForgeConfigSpec.ConfigValue<List<String>> MobCurrencyMap;
+    public static ForgeConfigSpec.ConfigValue<List<String>> ControlledMobIds;
     public static ForgeConfigSpec.BooleanValue UseAsyncPathfinding;
     public static ForgeConfigSpec.IntValue AsyncPathfindingThreadsCount;
     public static ForgeConfigSpec.BooleanValue UseAsyncTargetFinding;
@@ -703,6 +709,51 @@ public class RecruitsServerConfig {
                         \tdefault: true""")
                 .worldRestart()
                 .define("CompatCorpseMod", true);
+
+        UniversalMobControl = BUILDER.comment("""
+                        Enable recruits AI for all mobs.
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("UniversalMobControl", false);
+
+        ReplaceMobAI = BUILDER.comment("""
+                        If true, replaces existing mob AI when UniversalMobControl is active.
+                        Otherwise adds recruit behaviours on top of existing AI.
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("ReplaceMobAI", false);
+
+        AdditionalGunItems = BUILDER.comment("""
+                        Additional gun items from other mods treated as firearms.
+                        Provide a list of item registry names.
+                        \t(takes effect after restart)
+                        \tdefault: []""")
+                .worldRestart()
+                .define("AdditionalGunItems", new ArrayList<>());
+
+        PerMobCurrency = BUILDER.comment("""
+                        Use different hire currency for specific mobs. If false, uses global RecruitCurrency.
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("PerMobCurrency", false);
+
+        MobCurrencyMap = BUILDER.comment("""
+                        Mapping of mob id to currency item id in the format 'mobid=itemid'.
+                        Only used when PerMobCurrency is true.
+                        \t(takes effect after restart)
+                        \tdefault: []""")
+                .worldRestart()
+                .define("MobCurrencyMap", new ArrayList<>());
+
+        ControlledMobIds = BUILDER.comment("""
+                        List of mob ids that should receive recruit behaviour when UniversalMobControl is disabled.
+                        \t(takes effect after restart)
+                        \tdefault: []""")
+                .worldRestart()
+                .define("ControlledMobIds", new ArrayList<>());
 
         BUILDER.pop();
         BUILDER.comment("Recruit Mod performance Config:").push("Performance");

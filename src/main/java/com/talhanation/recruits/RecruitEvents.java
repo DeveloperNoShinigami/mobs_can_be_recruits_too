@@ -13,6 +13,8 @@ import com.talhanation.recruits.world.PillagerPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsPlayerUnitManager;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
+import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.CommandEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -32,11 +34,14 @@ import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.Team;
@@ -286,9 +291,9 @@ public class RecruitEvents {
     public void onLivingHurt(LivingHurtEvent event) {
         if(event.getEntity().getCommandSenderWorld().isClientSide()) return;
 
-        if (Main.isMusketModLoaded) {
+        {
             Entity sourceEntity = event.getSource().getEntity();
-            if (sourceEntity instanceof AbstractRecruitEntity owner && IWeapon.isMusketModWeapon(owner.getMainHandItem())) {
+            if (sourceEntity instanceof AbstractRecruitEntity owner && (IWeapon.isMusketModWeapon(owner.getMainHandItem()) || IWeapon.isCGMWeapon(owner.getMainHandItem()))) {
                 Entity target = event.getEntity();
                 if (target instanceof LivingEntity impactEntity) {
 
@@ -370,6 +375,62 @@ public class RecruitEvents {
 
         if (entity instanceof AbstractHorse horse) {
             horse.goalSelector.addGoal(0, new HorseRiddenByRecruitGoal(horse));
+        }
+    }
+
+    @SubscribeEvent
+    public void onMobJoinWorld(EntityJoinLevelEvent event) {
+        if(event.getLevel().isClientSide()) return;
+
+        Entity entity = event.getEntity();
+        if(entity instanceof Mob mob && !(mob instanceof AbstractRecruitEntity)) {
+            if(TeamEvents.isControlledMob(mob.getType())) {
+                if(RecruitsServerConfig.ReplaceMobAI.get()) {
+                    try {
+                        java.lang.reflect.Field f = mob.goalSelector.getClass().getDeclaredField("availableGoals");
+                        f.setAccessible(true);
+                        ((java.util.Set<?>)f.get(mob.goalSelector)).clear();
+                        ((java.util.Set<?>)f.get(mob.targetSelector)).clear();
+                    } catch (Exception ignored) {}
+                }
+
+                mob.goalSelector.addGoal(8, new net.minecraft.world.entity.ai.goal.RandomStrollGoal(mob, 1.0D));
+                mob.goalSelector.addGoal(9, new net.minecraft.world.entity.ai.goal.LookAtPlayerGoal(mob, Player.class, 8.0F));
+                mob.goalSelector.addGoal(10, new net.minecraft.world.entity.ai.goal.RandomLookAroundGoal(mob));
+                CompoundTag nbt = mob.getPersistentData();
+                nbt.putBoolean("RecruitControlled", true);
+                if(!nbt.contains("HireCost")) nbt.putInt("HireCost", 1);
+                nbt.putBoolean("Owned", false);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onControlMobInteract(PlayerInteractEvent.EntityInteract event){
+        if(event.getLevel().isClientSide()) return;
+
+        Entity target = event.getTarget();
+        if(!(target instanceof Mob mob) || target instanceof AbstractRecruitEntity) return;
+        CompoundTag nbt = mob.getPersistentData();
+        if(!nbt.getBoolean("RecruitControlled")) return;
+
+        Player player = event.getEntity();
+        ItemStack currency = TeamEvents.getCurrencyForMob(mob.getType());
+
+        if(!nbt.getBoolean("Owned")){
+            int cost = nbt.getInt("HireCost");
+            if(event.getItemStack().is(currency.getItem()) && event.getItemStack().getCount() >= cost){
+                event.getItemStack().shrink(cost);
+                nbt.putBoolean("Owned", true);
+                nbt.putUUID("Owner", player.getUUID());
+                player.sendSystemMessage(Component.literal("Mob recruited"));
+                event.setCancellationResult(InteractionResult.SUCCESS);
+                event.setCanceled(true);
+            }
+        } else if(nbt.contains("Owner") && nbt.getUUID("Owner").equals(player.getUUID()) && player.isCrouching()) {
+            CommandEvents.openCommandScreen(player);
+            event.setCancellationResult(InteractionResult.SUCCESS);
+            event.setCanceled(true);
         }
     }
 
