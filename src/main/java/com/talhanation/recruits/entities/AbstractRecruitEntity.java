@@ -1910,7 +1910,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     this.equipItem(equipment);
                     itemstack.shrink(1);
                 }
-                if(this instanceof CrossBowmanEntity crossBowmanEntity && Main.isMusketModLoaded && IWeapon.isMusketModWeapon(crossBowmanEntity.getMainHandItem()) && itemstack.getDescriptionId().contains("cartridge")){
+                if(this instanceof CrossBowmanEntity crossBowmanEntity && (IWeapon.isMusketModWeapon(crossBowmanEntity.getMainHandItem()) || IWeapon.isCGMWeapon(crossBowmanEntity.getMainHandItem())) && itemstack.getDescriptionId().contains("cartridge")){
                     if(this.canTakeCartridge()){
                         equipment = itemstack.copy();
                         this.inventory.addItem(equipment);

@@ -79,7 +79,7 @@ public class RecruitVillagerRenderer extends MobRenderer<AbstractRecruitEntity, 
 
     private static HumanoidModel.ArmPose getArmPose(AbstractInventoryEntity recruit, InteractionHand hand) {
         ItemStack itemstack = recruit.getItemInHand(hand);
-        boolean isMusket = IWeapon.isMusketModWeapon(itemstack) && (recruit instanceof CrossBowmanEntity crossBowman)  && crossBowman.isAggressive();
+        boolean isMusket = (IWeapon.isMusketModWeapon(itemstack) || IWeapon.isCGMWeapon(itemstack)) && (recruit instanceof CrossBowmanEntity crossBowman)  && crossBowman.isAggressive();
         if (itemstack.isEmpty()) {
             return HumanoidModel.ArmPose.EMPTY;
         } else {

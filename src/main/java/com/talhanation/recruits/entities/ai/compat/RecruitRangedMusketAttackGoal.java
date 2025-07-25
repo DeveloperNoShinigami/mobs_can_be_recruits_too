@@ -86,6 +86,10 @@ public class RecruitRangedMusketAttackGoal extends Goal {
             this.weapon = new PistolWeapon();
             return true;
         }
+        else if(IWeapon.isCGMWeapon(itemStack)){
+            this.weapon = new CGMWeapon();
+            return true;
+        }
         else
             return false;
     }
