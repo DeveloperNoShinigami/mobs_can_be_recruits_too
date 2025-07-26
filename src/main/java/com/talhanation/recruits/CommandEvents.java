@@ -165,7 +165,7 @@ public class CommandEvents {
         }
     }
 
-    private static double getForwardScale(List<FormationMember> recruits) {
+    private static double getForwardScale(List<? extends FormationMember> recruits) {
         for (FormationMember member : recruits){
             if(member.getMob() instanceof CaptainEntity recruit) return getForwardScale(recruit);
         }
@@ -174,7 +174,7 @@ public class CommandEvents {
     private static double getForwardScale(AbstractRecruitEntity recruit) {
         return (recruit instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()) ? 25 : 10;
     }
-    public static void applyFormation(int formation, List<FormationMember> recruits, ServerPlayer player, Vec3 targetPos) {
+    public static void applyFormation(int formation, List<? extends FormationMember> recruits, ServerPlayer player, Vec3 targetPos) {
         switch (formation){
             case 1 ->{//LINE UP
                 FormationUtils.lineUpFormation(player, recruits, targetPos);

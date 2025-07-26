@@ -34,18 +34,18 @@ public class FormationUtils {
         return new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
     }
-    public static void movementFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
+    public static void movementFormation(ServerPlayer player, List<? extends FormationMember> recruits, Vec3 targetPos) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         lineFormation(forward, recruits, targetPos, 3, 2.0D);
     }
 
-    public static void lineUpFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
+    public static void lineUpFormation(ServerPlayer player, List<? extends FormationMember> recruits, Vec3 targetPos) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         lineFormation(forward, recruits, targetPos, 20, 1.75D);
     }
-    public static void lineFormation(Vec3 forward, List<FormationMember> recruits, Vec3 targetPos, int maxInRow, double spacing) {
+    public static void lineFormation(Vec3 forward, List<? extends FormationMember> recruits, Vec3 targetPos, int maxInRow, double spacing) {
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
         List<FormationPosition> possiblePositions = new ArrayList<>();
@@ -104,13 +104,13 @@ public class FormationUtils {
             }
         }
     }
-    public static void squareFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
+    public static void squareFormation(ServerPlayer player, List<? extends FormationMember> recruits, Vec3 targetPos) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         squareFormation(forward, recruits, targetPos, 2.5);
     }
 
-    public static void squareFormation(Vec3 forward, List<FormationMember> recruits, Vec3 targetPos, double spacing) {
+    public static void squareFormation(Vec3 forward, List<? extends FormationMember> recruits, Vec3 targetPos, double spacing) {
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
         for(FormationMember rec : recruits){
@@ -173,7 +173,7 @@ public class FormationUtils {
 
 
 
-    public static void triangleFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
+    public static void triangleFormation(ServerPlayer player, List<? extends FormationMember> recruits, Vec3 targetPos) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
@@ -238,7 +238,7 @@ public class FormationUtils {
         }
     }
 
-    public static void hollowCircleFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
+    public static void hollowCircleFormation(ServerPlayer player, List<? extends FormationMember> recruits, Vec3 targetPos) {
         double spacing = 2.5; // Distance between recruits in the circle
         int numRecruits = recruits.size();
 
@@ -297,7 +297,7 @@ public class FormationUtils {
             }
         }
     }
-    public static void circleFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
+    public static void circleFormation(ServerPlayer player, List<? extends FormationMember> recruits, Vec3 targetPos) {
         double spacing = 2.5; // Abstand zwischen den Rekruten in jedem Ring
         int numRecruits = recruits.size();
 
@@ -382,7 +382,7 @@ public class FormationUtils {
         }
     }
 
-    public static void hollowSquareFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
+    public static void hollowSquareFormation(ServerPlayer player, List<? extends FormationMember> recruits, Vec3 targetPos) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
@@ -458,7 +458,7 @@ public class FormationUtils {
     }
 
 
-    public static void vFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
+    public static void vFormation(ServerPlayer player, List<? extends FormationMember> recruits, Vec3 targetPos) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
@@ -545,7 +545,7 @@ public class FormationUtils {
         return new Vec3(centerX, blockPos.getY(), centerZ);
     }
 
-    public static Vec3 getFarthestRecruitsCenter(List<FormationMember> recruits, ServerLevel level) {
+    public static Vec3 getFarthestRecruitsCenter(List<? extends FormationMember> recruits, ServerLevel level) {
         if (recruits.size() < 2) {
             return recruits.isEmpty() ? Vec3.ZERO : recruits.get(0).getMob().position();
         }
@@ -580,7 +580,7 @@ public class FormationUtils {
         return new Vec3(centerX, blockPos.getY(), centerZ);
     }
 
-    public static Vec3 getGeometricMedian(List<FormationMember> recruits, ServerLevel level) {
+    public static Vec3 getGeometricMedian(List<? extends FormationMember> recruits, ServerLevel level) {
         if (recruits.isEmpty()) {
             return Vec3.ZERO;
         }
