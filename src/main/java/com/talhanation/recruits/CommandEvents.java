@@ -6,7 +6,9 @@ import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.inventory.ControlledMobMenu;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.util.FormationMember;
 import com.talhanation.recruits.util.FormationUtils;
+import com.talhanation.recruits.util.MobFormationAdapter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -51,8 +53,14 @@ public class CommandEvents {
     //7 = forward
     //8 = backward
     public static void onMovementCommand(ServerPlayer player, List<Mob> recruits, int movementState, int formation) {
-        List<AbstractRecruitEntity> recruitList = new ArrayList<>();
-        for (Mob mob : recruits) if (mob instanceof AbstractRecruitEntity ar) recruitList.add(ar);
+        List<FormationMember> recruitList = new ArrayList<>();
+        for (Mob mob : recruits) {
+            if (mob instanceof FormationMember fm) {
+                recruitList.add(fm);
+            } else {
+                recruitList.add(new MobFormationAdapter(mob));
+            }
+        }
 
         if(formation != 0 && (movementState == 2|| movementState == 4 || movementState == 6 || movementState == 7 || movementState == 8)) {
             Vec3 targetPos = null;
@@ -157,16 +165,16 @@ public class CommandEvents {
         }
     }
 
-    private static double getForwardScale(List<AbstractRecruitEntity> recruits) {
-        for (AbstractRecruitEntity recruit : recruits){
-            if(recruit instanceof CaptainEntity) return getForwardScale(recruit);
+    private static double getForwardScale(List<FormationMember> recruits) {
+        for (FormationMember member : recruits){
+            if(member.getMob() instanceof CaptainEntity recruit) return getForwardScale(recruit);
         }
         return 10;
     }
     private static double getForwardScale(AbstractRecruitEntity recruit) {
         return (recruit instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()) ? 25 : 10;
     }
-    public static void applyFormation(int formation, List<AbstractRecruitEntity> recruits, ServerPlayer player, Vec3 targetPos) {
+    public static void applyFormation(int formation, List<FormationMember> recruits, ServerPlayer player, Vec3 targetPos) {
         switch (formation){
             case 1 ->{//LINE UP
                 FormationUtils.lineUpFormation(player, recruits, targetPos);
@@ -344,15 +352,22 @@ public class CommandEvents {
 
                 if(targetPosition.distanceToSqr(oldPos) > 50){
 
-                    List<AbstractRecruitEntity> list = Objects.requireNonNull(serverPlayer).getCommandSenderWorld().getEntitiesOfClass(
-                                    AbstractRecruitEntity.class,
+                    List<Mob> list = Objects.requireNonNull(serverPlayer).getCommandSenderWorld().getEntitiesOfClass(
+                                    Mob.class,
                                     serverPlayer.getBoundingBox().inflate(200)
                             );
-                    int[] array = getActiveGroups(serverPlayer);
+                    list.removeIf(m -> {
+                        if(m instanceof AbstractRecruitEntity recruit) {
+                            return Arrays.stream(getActiveGroups(serverPlayer)).noneMatch(x -> recruit.isEffectedByCommand(serverPlayer.getUUID(), x));
+                        }
+                        return !(m.getPersistentData().getBoolean("RecruitControlled") && m.getPersistentData().getBoolean("Owned") && m.getPersistentData().getUUID("Owner").equals(serverPlayer.getUUID()));
+                    });
+                    List<FormationMember> members = new ArrayList<>();
+                    for(Mob m : list) {
+                        if(m instanceof FormationMember fm) members.add(fm); else members.add(new MobFormationAdapter(m));
+                    }
 
-                    list.removeIf(recruit -> Arrays.stream(array).noneMatch(x -> recruit.isEffectedByCommand(serverPlayer.getUUID(), x)));
-
-                    applyFormation(formation, list, serverPlayer, targetPosition);
+                    applyFormation(formation, members, serverPlayer, targetPosition);
                     int[] position = new int[]{(int) targetPosition.x, (int) targetPosition.z};
                     saveFormationPos(serverPlayer, position);
                 }

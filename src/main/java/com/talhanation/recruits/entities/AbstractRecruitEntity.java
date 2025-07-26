@@ -76,7 +76,9 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
+import com.talhanation.recruits.util.FormationMember;
+
+public abstract class AbstractRecruitEntity extends AbstractInventoryEntity implements FormationMember {
     private static final EntityDataAccessor<Integer> DATA_REMAINING_ANGER_TIME = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> STATE = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> FOLLOW_STATE = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
@@ -893,6 +895,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     //4 = hold my position
     //5 = Protect
     //6 = Work
+    @Override
     public void setFollowState(int state){
         switch (state) {
             case 0,6 -> {
@@ -941,6 +944,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.set(FOLLOW_STATE, state);
     }
 
+    @Override
+    public Mob getMob() {
+        return this;
+    }
+
+    @Override
     public void setHoldPos(Vec3 holdPos){
         //this.entityData.set(HOLD_POS, Optional.of(holdPos));
         this.holdPosVec = holdPos;
