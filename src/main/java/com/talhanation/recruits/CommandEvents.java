@@ -736,6 +736,44 @@ public class CommandEvents {
                     mob.getNavigation().moveTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, 1.0D);
                 }
             }
+            case 3 -> {
+                nbt.putInt("FollowState", 3);
+                if (nbt.contains("HoldX") && nbt.contains("HoldY") && nbt.contains("HoldZ")) {
+                    double x = nbt.getDouble("HoldX");
+                    double y = nbt.getDouble("HoldY");
+                    double z = nbt.getDouble("HoldZ");
+                    mob.getNavigation().moveTo(x, y, z, 1.0D);
+                }
+            }
+            case 5 -> nbt.putInt("FollowState", 5);
+            case 7 -> {
+                Vec3 forward = player.getForward();
+                Vec3 pos = player.position().add(forward.scale(10));
+                BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                        player.getCommandSenderWorld(),
+                        new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
+                );
+                Vec3 tPos = new Vec3(pos.x, blockPos.getY(), pos.z);
+                nbt.putInt("FollowState", 3);
+                nbt.putDouble("HoldX", tPos.x);
+                nbt.putDouble("HoldY", tPos.y);
+                nbt.putDouble("HoldZ", tPos.z);
+                mob.getNavigation().moveTo(tPos.x, tPos.y, tPos.z, 1.0D);
+            }
+            case 8 -> {
+                Vec3 forward = player.getForward();
+                Vec3 pos = player.position().add(forward.scale(-10));
+                BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                        player.getCommandSenderWorld(),
+                        new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
+                );
+                Vec3 tPos = new Vec3(pos.x, blockPos.getY(), pos.z);
+                nbt.putInt("FollowState", 3);
+                nbt.putDouble("HoldX", tPos.x);
+                nbt.putDouble("HoldY", tPos.y);
+                nbt.putDouble("HoldZ", tPos.z);
+                mob.getNavigation().moveTo(tPos.x, tPos.y, tPos.z, 1.0D);
+            }
         }
     }
 }
