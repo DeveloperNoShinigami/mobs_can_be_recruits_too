@@ -4,6 +4,7 @@ import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.CommandMenu;
+import com.talhanation.recruits.inventory.ControlledMobMenu;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.util.FormationUtils;
 import net.minecraft.core.BlockPos;
@@ -306,6 +307,23 @@ public class CommandEvents {
             }, packetBuffer -> {packetBuffer.writeUUID(player.getUUID());});
         } else {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageCommandScreen(player));
+        }
+    }
+
+    public static void openMobInventoryScreen(Player player, Mob mob){
+        if(player instanceof ServerPlayer serverPlayer){
+            updateRecruitInventoryScreen(serverPlayer);
+            NetworkHooks.openScreen(serverPlayer, new MenuProvider() {
+                @Override
+                public @NotNull Component getDisplayName() {
+                    return mob.getName();
+                }
+
+                @Override
+                public @NotNull AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player p) {
+                    return new ControlledMobMenu(i, mob, playerInventory);
+                }
+            }, buf -> buf.writeUUID(mob.getUUID()));
         }
     }
     @SubscribeEvent

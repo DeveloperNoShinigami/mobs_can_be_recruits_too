@@ -7,6 +7,7 @@ import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
 import com.talhanation.recruits.inventory.*;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
@@ -32,6 +33,7 @@ public class ModScreens {
 
     public static void registerMenus() {
         registerMenu(RECRUIT_CONTAINER_TYPE.get(), RecruitInventoryScreen::new);
+        registerMenu(CONTROLLED_MOB_CONTAINER_TYPE.get(), RecruitInventoryScreen::new);
         registerMenu(DEBUG_CONTAINER_TYPE.get(), DebugInvScreen::new);
         registerMenu(COMMAND_CONTAINER_TYPE.get(), CommandScreen::new);
         registerMenu(ASSASSIN_CONTAINER_TYPE.get(), AssassinLeaderScreen::new);
@@ -58,6 +60,23 @@ public class ModScreens {
 
             } catch (Exception e) {
                 logger.error("Error in recruit_container: ");
+                logger.error(e.getMessage());
+                logger.error(e.getStackTrace().toString());
+                return null;
+            }
+    }));
+
+    public static final RegistryObject<MenuType<ControlledMobMenu>> CONTROLLED_MOB_CONTAINER_TYPE =
+        MENU_TYPES.register("controlled_mob_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+            try {
+                UUID mobId = data.readUUID();
+                Mob mob = getControlledMobByUUID(inv.player, mobId);
+                if (mob == null) {
+                    return null;
+                }
+                return new ControlledMobMenu(windowId, mob, inv);
+            } catch (Exception e) {
+                logger.error("Error in controlled_mob_container: ");
                 logger.error(e.getMessage());
                 logger.error(e.getStackTrace().toString());
                 return null;
@@ -264,6 +283,24 @@ public class ModScreens {
                             player.getY() + distance,
                             player.getZ() + distance),
                     entity -> entity.getUUID().equals(uuid)
+            ).stream().findAny().orElse(null);
+    }
+
+    @Nullable
+    public static Mob getControlledMobByUUID(Player player, UUID uuid) {
+        double distance = 10D;
+        return player.getCommandSenderWorld().getEntitiesOfClass(
+                    Mob.class,
+                    new AABB(
+                            player.getX() - distance,
+                            player.getY() - distance,
+                            player.getZ() - distance,
+                            player.getX() + distance,
+                            player.getY() + distance,
+                            player.getZ() + distance),
+                    entity -> !(entity instanceof AbstractRecruitEntity) &&
+                            entity.getPersistentData().getBoolean("RecruitControlled") &&
+                            entity.getUUID().equals(uuid)
             ).stream().findAny().orElse(null);
     }
 }

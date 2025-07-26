@@ -442,7 +442,7 @@ public class RecruitEvents {
                 event.setCanceled(true);
             }
         } else if(nbt.contains("Owner") && nbt.getUUID("Owner").equals(player.getUUID()) && player.isCrouching()) {
-            CommandEvents.openCommandScreen(player);
+            CommandEvents.openMobInventoryScreen(player, mob);
             event.setCancellationResult(InteractionResult.SUCCESS);
             event.setCanceled(true);
         }
