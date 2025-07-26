@@ -2,6 +2,7 @@ package com.talhanation.recruits.util;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.CaptainEntity;
+import com.talhanation.recruits.util.FormationMember;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,24 +34,24 @@ public class FormationUtils {
         return new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
     }
-    public static void movementFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
+    public static void movementFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         lineFormation(forward, recruits, targetPos, 3, 2.0D);
     }
 
-    public static void lineUpFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
+    public static void lineUpFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         lineFormation(forward, recruits, targetPos, 20, 1.75D);
     }
-    public static void lineFormation(Vec3 forward, List<AbstractRecruitEntity> recruits, Vec3 targetPos, int maxInRow, double spacing) {
+    public static void lineFormation(Vec3 forward, List<FormationMember> recruits, Vec3 targetPos, int maxInRow, double spacing) {
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
         List<FormationPosition> possiblePositions = new ArrayList<>();
 
-        for(AbstractRecruitEntity rec : recruits){
-            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+        for(FormationMember rec : recruits){
+            if(rec.getMob() instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
                 spacing *= 10;
                 break;
             }
@@ -70,10 +71,12 @@ public class FormationUtils {
             possiblePositions.add(new FormationPosition(recruitPos, true));
         }
 
-        for (AbstractRecruitEntity recruit : recruits) {
+        for (FormationMember member : recruits) {
+            Mob mob = member.getMob();
+            AbstractRecruitEntity recruit = mob instanceof AbstractRecruitEntity ar ? ar : null;
             Vec3 pos = null;
 
-            if (recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
+            if (recruit != null && recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
                 FormationPosition position = possiblePositions.get(recruit.formationPos);
                 position.isFree = false;
                 pos = position.position;
@@ -82,7 +85,7 @@ public class FormationUtils {
                     FormationPosition position = possiblePositions.get(i);
                     if (position.isFree) {
                         pos = possiblePositions.get(i).position;
-                        recruit.formationPos = i;
+                        if (recruit != null) recruit.formationPos = i;
                         position.isFree = false;
                         break;
                     }
@@ -91,28 +94,27 @@ public class FormationUtils {
 
             if (pos != null) {
                 BlockPos blockPos = FormationUtils.getPositionOrSurface(
-                        recruit.getCommandSenderWorld(),
+                        mob.getCommandSenderWorld(),
                         new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
                 );
 
-                recruit.setHoldPos(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
-                //recruit.ownerRot = player.getYRot();
-                recruit.setFollowState(3);
-                recruit.isInFormation = true;
+                member.setHoldPos(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
+                member.setFollowState(3);
+                if (recruit != null) recruit.isInFormation = true;
             }
         }
     }
-    public static void squareFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
+    public static void squareFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         squareFormation(forward, recruits, targetPos, 2.5);
     }
 
-    public static void squareFormation(Vec3 forward, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacing) {
+    public static void squareFormation(Vec3 forward, List<FormationMember> recruits, Vec3 targetPos, double spacing) {
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
-        for(AbstractRecruitEntity rec : recruits){
-            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+        for(FormationMember rec : recruits){
+            if(rec.getMob() instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
                 spacing *= 10;
                 break;
             }
@@ -134,7 +136,9 @@ public class FormationUtils {
             possiblePositions.add(new FormationPosition(recruitPos, true));
         }
 
-        for (AbstractRecruitEntity recruit : recruits) {
+        for (FormationMember member : recruits) {
+            Mob mob = member.getMob();
+            AbstractRecruitEntity recruit = mob instanceof AbstractRecruitEntity ar ? ar : null;
             Vec3 pos = null;
 
             if (recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
@@ -147,7 +151,7 @@ public class FormationUtils {
                     FormationPosition position = possiblePositions.get(i);
                     if (position.isFree) {
                         pos = position.position;
-                        recruit.formationPos = i; // Remember this position for next time
+                        if (recruit != null) recruit.formationPos = i; // Remember this position for next time
                         position.isFree = false;
                         break;
                     }
@@ -156,21 +160,20 @@ public class FormationUtils {
 
             if (pos != null) {
                 BlockPos blockPos = FormationUtils.getPositionOrSurface(
-                        recruit.getCommandSenderWorld(),
+                        mob.getCommandSenderWorld(),
                         new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
                 );
 
-                recruit.setHoldPos(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
-                //recruit.ownerRot = forwar;
-                recruit.setFollowState(3);
-                recruit.isInFormation = true;
+                member.setHoldPos(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
+                member.setFollowState(3);
+                if (recruit != null) recruit.isInFormation = true;
             }
         }
     }
 
 
 
-    public static void triangleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
+    public static void triangleFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
@@ -178,8 +181,8 @@ public class FormationUtils {
         double spacing = 2.5;
         int numRecruits = recruits.size();
 
-        for(AbstractRecruitEntity rec : recruits){
-            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+        for(FormationMember rec : recruits){
+            if(rec.getMob() instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
                 spacing *= 10;
                 break;
             }
@@ -200,7 +203,9 @@ public class FormationUtils {
             rowCount++;
         }
 
-        for (AbstractRecruitEntity recruit : recruits) {
+        for (FormationMember member : recruits) {
+            Mob mob = member.getMob();
+            AbstractRecruitEntity recruit = mob instanceof AbstractRecruitEntity ar ? ar : null;
             Vec3 pos = null;
 
             if (recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
@@ -212,7 +217,7 @@ public class FormationUtils {
                     FormationPosition position = possiblePositions.get(i);
                     if (position.isFree) {
                         pos = possiblePositions.get(i).position;
-                        recruit.formationPos = i;
+                        if (recruit != null) recruit.formationPos = i;
                         position.isFree = false;
                         break;
                     }
@@ -221,24 +226,24 @@ public class FormationUtils {
 
             if (pos != null) {
                 BlockPos blockPos = FormationUtils.getPositionOrSurface(
-                        recruit.getCommandSenderWorld(),
+                        mob.getCommandSenderWorld(),
                         new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
                 );
 
-                recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
-                recruit.ownerRot = player.getYRot();
-                recruit.setFollowState(3);
-                recruit.isInFormation = true;
+                member.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
+                if (recruit != null) recruit.ownerRot = player.getYRot();
+                member.setFollowState(3);
+                if (recruit != null) recruit.isInFormation = true;
             }
         }
     }
 
-    public static void hollowCircleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
+    public static void hollowCircleFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
         double spacing = 2.5; // Distance between recruits in the circle
         int numRecruits = recruits.size();
 
-        for(AbstractRecruitEntity rec : recruits){
-            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+        for(FormationMember rec : recruits){
+            if(rec.getMob() instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
                 spacing *= 10;
                 break;
             }
@@ -258,7 +263,9 @@ public class FormationUtils {
             possiblePositions.add(new FormationPosition(recruitPos, true));
         }
 
-        for (AbstractRecruitEntity recruit : recruits) {
+        for (FormationMember member : recruits) {
+            Mob mob = member.getMob();
+            AbstractRecruitEntity recruit = mob instanceof AbstractRecruitEntity ar ? ar : null;
             Vec3 pos = null;
 
             if (recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
@@ -270,7 +277,7 @@ public class FormationUtils {
                     FormationPosition position = possiblePositions.get(i);
                     if (position.isFree) {
                         pos = possiblePositions.get(i).position;
-                        recruit.formationPos = i;
+                        if (recruit != null) recruit.formationPos = i;
                         position.isFree = false;
                         break;
                     }
@@ -279,23 +286,23 @@ public class FormationUtils {
 
             if (pos != null) {
                 BlockPos blockPos = FormationUtils.getPositionOrSurface(
-                        recruit.getCommandSenderWorld(),
+                        mob.getCommandSenderWorld(),
                         new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
                 );
 
-                recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
-                recruit.ownerRot = player.getYRot();
-                recruit.setFollowState(3);
-                recruit.isInFormation = true;
+                member.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
+                if (recruit != null) recruit.ownerRot = player.getYRot();
+                member.setFollowState(3);
+                if (recruit != null) recruit.isInFormation = true;
             }
         }
     }
-    public static void circleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
+    public static void circleFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
         double spacing = 2.5; // Abstand zwischen den Rekruten in jedem Ring
         int numRecruits = recruits.size();
 
-        for(AbstractRecruitEntity rec : recruits){
-            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+        for(FormationMember rec : recruits){
+            if(rec.getMob() instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
                 spacing *= 10;
                 break;
             }
@@ -340,7 +347,9 @@ public class FormationUtils {
         }
 
         // Zuweisen der Positionen an die Rekruten
-        for (AbstractRecruitEntity recruit : recruits) {
+        for (FormationMember member : recruits) {
+            Mob mob = member.getMob();
+            AbstractRecruitEntity recruit = mob instanceof AbstractRecruitEntity ar ? ar : null;
             Vec3 pos = null;
 
             if (recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
@@ -352,7 +361,7 @@ public class FormationUtils {
                     FormationPosition position = possiblePositions.get(i);
                     if (position.isFree) {
                         pos = possiblePositions.get(i).position;
-                        recruit.formationPos = i;
+                        if (recruit != null) recruit.formationPos = i;
                         position.isFree = false;
                         break;
                     }
@@ -361,19 +370,19 @@ public class FormationUtils {
 
             if (pos != null) {
                 BlockPos blockPos = FormationUtils.getPositionOrSurface(
-                        recruit.getCommandSenderWorld(),
+                        mob.getCommandSenderWorld(),
                         new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
                 );
 
-                recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
-                recruit.ownerRot = player.getYRot();
-                recruit.setFollowState(3);
-                recruit.isInFormation = true;
+                member.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
+                if (recruit != null) recruit.ownerRot = player.getYRot();
+                member.setFollowState(3);
+                if (recruit != null) recruit.isInFormation = true;
             }
         }
     }
 
-    public static void hollowSquareFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
+    public static void hollowSquareFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
@@ -381,8 +390,8 @@ public class FormationUtils {
         int recruitsPerSide = Math.max(2, recruits.size() / 4); // Ensure at least 2 recruits per side
         double spacing = 2.5;
 
-        for(AbstractRecruitEntity rec : recruits){
-            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+        for(FormationMember rec : recruits){
+            if(rec.getMob() instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
                 spacing *= 10;
                 break;
             }
@@ -411,7 +420,9 @@ public class FormationUtils {
             }
         }
 
-        for (AbstractRecruitEntity recruit : recruits) {
+        for (FormationMember member : recruits) {
+            Mob mob = member.getMob();
+            AbstractRecruitEntity recruit = mob instanceof AbstractRecruitEntity ar ? ar : null;
             Vec3 pos = null;
 
             if (recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
@@ -425,7 +436,7 @@ public class FormationUtils {
                     FormationPosition position = possiblePositions.get(i);
                     if (position.isFree) {
                         pos = position.position;
-                        recruit.formationPos = i; // Remember this position for next time
+                        if (recruit != null) recruit.formationPos = i; // Remember this position for next time
                         position.isFree = false;
                         break;
                     }
@@ -434,20 +445,20 @@ public class FormationUtils {
 
             if (pos != null) {
                 BlockPos blockPos = FormationUtils.getPositionOrSurface(
-                        recruit.getCommandSenderWorld(),
+                        mob.getCommandSenderWorld(),
                         new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
                 );
 
-                recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
-                recruit.ownerRot = player.getYRot();
-                recruit.setFollowState(3);
-                recruit.isInFormation = true;
+                member.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
+                if (recruit != null) recruit.ownerRot = player.getYRot();
+                member.setFollowState(3);
+                if (recruit != null) recruit.isInFormation = true;
             }
         }
     }
 
 
-    public static void vFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
+    public static void vFormation(ServerPlayer player, List<FormationMember> recruits, Vec3 targetPos) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
@@ -455,8 +466,8 @@ public class FormationUtils {
         double spacing = 2.5;
         int recruitsPerWing = recruits.size() / 2;
 
-        for(AbstractRecruitEntity rec : recruits){
-            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+        for(FormationMember rec : recruits){
+            if(rec.getMob() instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
                 spacing *= 10;
                 break;
             }
@@ -483,18 +494,20 @@ public class FormationUtils {
 
 
         for (int i = 0; i < recruits.size() && i < possiblePositions.size(); i++) {
-            AbstractRecruitEntity recruit = recruits.get(i);
+            FormationMember member = recruits.get(i);
+            Mob mob = member.getMob();
+            AbstractRecruitEntity recruit = mob instanceof AbstractRecruitEntity ar ? ar : null;
             Vec3 pos = possiblePositions.get(i).position;
 
             BlockPos blockPos = FormationUtils.getPositionOrSurface(
-                    recruit.getCommandSenderWorld(),
+                    mob.getCommandSenderWorld(),
                     new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
             );
 
-            recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
-            recruit.ownerRot = player.getYRot();
-            recruit.setFollowState(3);
-            recruit.isInFormation = true;
+            member.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
+            if (recruit != null) recruit.ownerRot = player.getYRot();
+            member.setFollowState(3);
+            if (recruit != null) recruit.isInFormation = true;
         }
     }
 
@@ -532,18 +545,18 @@ public class FormationUtils {
         return new Vec3(centerX, blockPos.getY(), centerZ);
     }
 
-    public static Vec3 getFarthestRecruitsCenter(List<AbstractRecruitEntity> recruits, ServerLevel level) {
+    public static Vec3 getFarthestRecruitsCenter(List<FormationMember> recruits, ServerLevel level) {
         if (recruits.size() < 2) {
-            return recruits.isEmpty() ? Vec3.ZERO : recruits.get(0).position();
+            return recruits.isEmpty() ? Vec3.ZERO : recruits.get(0).getMob().position();
         }
 
-        AbstractRecruitEntity farthestRecruit1 = null;
-        AbstractRecruitEntity farthestRecruit2 = null;
+        FormationMember farthestRecruit1 = null;
+        FormationMember farthestRecruit2 = null;
         double maxDistance = Double.MIN_VALUE;
 
         for (int i = 0; i < recruits.size() - 1; i++) {
             for (int j = i + 1; j < recruits.size(); j++) {
-                double distance = recruits.get(i).distanceToSqr(recruits.get(j));
+                double distance = recruits.get(i).getMob().distanceToSqr(recruits.get(j).getMob());
                 if (distance > maxDistance) {
                     maxDistance = distance;
                     farthestRecruit1 = recruits.get(i);
@@ -552,8 +565,8 @@ public class FormationUtils {
             }
         }
 
-        Vec3 pos1 = Objects.requireNonNull(farthestRecruit1).position();
-        Vec3 pos2 = Objects.requireNonNull(farthestRecruit2).position();
+        Vec3 pos1 = Objects.requireNonNull(farthestRecruit1).getMob().position();
+        Vec3 pos2 = Objects.requireNonNull(farthestRecruit2).getMob().position();
 
         double centerX = (pos1.x + pos2.x) / 2.0;
         double centerY = (pos1.y + pos2.y) / 2.0;
@@ -567,15 +580,15 @@ public class FormationUtils {
         return new Vec3(centerX, blockPos.getY(), centerZ);
     }
 
-    public static Vec3 getGeometricMedian(List<AbstractRecruitEntity> recruits, ServerLevel level) {
+    public static Vec3 getGeometricMedian(List<FormationMember> recruits, ServerLevel level) {
         if (recruits.isEmpty()) {
             return Vec3.ZERO;
         }
 
         // Initial guess: average position
         double sumX = 0, sumY = 0, sumZ = 0;
-        for (AbstractRecruitEntity recruit : recruits) {
-            Vec3 pos = recruit.position();
+        for (FormationMember recruit : recruits) {
+            Vec3 pos = recruit.getMob().position();
             sumX += pos.x;
             sumY += pos.y;
             sumZ += pos.z;
@@ -589,8 +602,8 @@ public class FormationUtils {
             double numeratorX = 0, numeratorY = 0, numeratorZ = 0;
             double denominator = 0;
 
-            for (AbstractRecruitEntity recruit : recruits) {
-                Vec3 pos = recruit.position();
+            for (FormationMember recruit : recruits) {
+                Vec3 pos = recruit.getMob().position();
                 double distance = currentGuess.distanceTo(pos);
 
                 if (distance < tolerance) {
