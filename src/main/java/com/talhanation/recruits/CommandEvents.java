@@ -58,7 +58,7 @@ public class CommandEvents {
 
             switch (movementState){
                case 2 -> {//hold your position
-                   targetPos = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
+                   targetPos = FormationUtils.getGeometricMedian(recruitList, (ServerLevel) player.getCommandSenderWorld());
                }
 
                case 4 -> {//hold my position
@@ -71,7 +71,7 @@ public class CommandEvents {
                }
 
                case 7 -> {//forward
-                   Vec3 center = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
+                   Vec3 center = FormationUtils.getGeometricMedian(recruitList, (ServerLevel) player.getCommandSenderWorld());
                    Vec3 forward = player.getForward();
                    Vec3 pos = center.add(forward.scale(getForwardScale(recruitList)));
                    BlockPos blockPos = FormationUtils.getPositionOrSurface(
@@ -83,7 +83,7 @@ public class CommandEvents {
                }
 
                case 8 -> {//backward
-                   Vec3 center = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
+                   Vec3 center = FormationUtils.getGeometricMedian(recruitList, (ServerLevel) player.getCommandSenderWorld());
                    Vec3 forward = player.getForward();
                    Vec3 pos = center.add(forward.scale(-getForwardScale(recruitList)));
                    BlockPos blockPos = FormationUtils.getPositionOrSurface(

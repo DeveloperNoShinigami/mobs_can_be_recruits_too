@@ -31,7 +31,9 @@ public class ControlledMobHoldPosGoal extends Goal {
             nbt.putDouble("HoldY", mob.getY());
             nbt.putDouble("HoldZ", mob.getZ());
         }
-        targetPos = new BlockPos(nbt.getDouble("HoldX"), nbt.getDouble("HoldY"), nbt.getDouble("HoldZ"));
+      
+        targetPos = new BlockPos((int) nbt.getDouble("HoldX"), (int) nbt.getDouble("HoldY"), (int) nbt.getDouble("HoldZ"));
+
         return mob.blockPosition().distSqr(targetPos) > 2.0D;
     }
 
