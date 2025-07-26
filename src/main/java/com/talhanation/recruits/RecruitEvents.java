@@ -42,6 +42,9 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.PathfinderMob;
+import com.talhanation.recruits.entities.ai.compat.ControlledMobFollowOwnerGoal;
+import com.talhanation.recruits.entities.ai.compat.ControlledMobHoldPosGoal;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.Team;
@@ -394,13 +397,19 @@ public class RecruitEvents {
                     } catch (Exception ignored) {}
                 }
 
-                mob.goalSelector.addGoal(8, new net.minecraft.world.entity.ai.goal.RandomStrollGoal(mob, 1.0D));
-                mob.goalSelector.addGoal(9, new net.minecraft.world.entity.ai.goal.LookAtPlayerGoal(mob, Player.class, 8.0F));
-                mob.goalSelector.addGoal(10, new net.minecraft.world.entity.ai.goal.RandomLookAroundGoal(mob));
+                if (mob instanceof PathfinderMob pathfinderMob) {
+                    pathfinderMob.goalSelector.addGoal(8, new net.minecraft.world.entity.ai.goal.RandomStrollGoal(pathfinderMob, 1.0D));
+                    pathfinderMob.goalSelector.addGoal(9, new net.minecraft.world.entity.ai.goal.LookAtPlayerGoal(pathfinderMob, Player.class, 8.0F));
+                    pathfinderMob.goalSelector.addGoal(10, new net.minecraft.world.entity.ai.goal.RandomLookAroundGoal(pathfinderMob));
+                    pathfinderMob.goalSelector.addGoal(7, new ControlledMobFollowOwnerGoal(pathfinderMob, 1.0D, 6.0F, 2.0F));
+                    pathfinderMob.goalSelector.addGoal(6, new ControlledMobHoldPosGoal(pathfinderMob, 1.0D));
+                }
                 CompoundTag nbt = mob.getPersistentData();
                 nbt.putBoolean("RecruitControlled", true);
                 if(!nbt.contains("HireCost")) nbt.putInt("HireCost", 1);
                 nbt.putBoolean("Owned", false);
+                nbt.putInt("Group", 0);
+                nbt.putInt("FollowState", 0);
             }
         }
     }
@@ -423,6 +432,11 @@ public class RecruitEvents {
                 event.getItemStack().shrink(cost);
                 nbt.putBoolean("Owned", true);
                 nbt.putUUID("Owner", player.getUUID());
+                nbt.putInt("FollowState", 1);
+                if (mob instanceof PathfinderMob pathfinderMob) {
+                    pathfinderMob.goalSelector.addGoal(7, new ControlledMobFollowOwnerGoal(pathfinderMob, 1.0D, 6.0F, 2.0F));
+                    pathfinderMob.goalSelector.addGoal(6, new ControlledMobHoldPosGoal(pathfinderMob, 1.0D));
+                }
                 player.sendSystemMessage(Component.literal("Mob recruited"));
                 event.setCancellationResult(InteractionResult.SUCCESS);
                 event.setCanceled(true);
