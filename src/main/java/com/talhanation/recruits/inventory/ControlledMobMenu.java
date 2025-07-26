@@ -92,11 +92,15 @@ public class ControlledMobMenu extends ContainerBase {
         super(ModScreens.CONTROLLED_MOB_CONTAINER_TYPE.get(), id, playerInventory, container);
         this.mob = mob;
         this.mobInventory = container;
-        
+
         addPlayerInventorySlots();
         addMobHandSlots();
         addMobEquipmentSlots();
         addMobInventorySlots();
+    }
+
+    public Mob getMob(){
+        return mob;
     }
 
     @Override
