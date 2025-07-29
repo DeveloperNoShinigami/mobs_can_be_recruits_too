@@ -429,7 +429,9 @@ public class RecruitEvents {
                 event.setCancellationResult(InteractionResult.SUCCESS);
                 event.setCanceled(true);
             }
+
         } else if(nbt.getBoolean("Owned") && nbt.contains("Owner") && nbt.getUUID("Owner").equals(player.getUUID())) {
+
             CommandEvents.openMobInventoryScreen(player, mob);
             event.setCancellationResult(InteractionResult.SUCCESS);
             event.setCanceled(true);
@@ -890,7 +892,7 @@ public class RecruitEvents {
         pathfinderMob.goalSelector.addGoal(7, new ControlledMobFollowOwnerGoal(pathfinderMob, 1.0D, 6.0F, 2.0F));
         pathfinderMob.goalSelector.addGoal(6, new ControlledMobHoldPosGoal(pathfinderMob, 1.0D));
     }
-
+  
     private static void restoreControlledMobInventory(Mob mob) {
         CompoundTag tag = mob.getPersistentData();
         if (!tag.contains("MobInventory")) return;
@@ -925,4 +927,5 @@ public class RecruitEvents {
         }
         tag.remove("MobInventory");
     }
+  
 }
