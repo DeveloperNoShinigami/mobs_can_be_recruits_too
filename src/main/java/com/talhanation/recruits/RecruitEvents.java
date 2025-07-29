@@ -43,6 +43,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.nbt.ListTag;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobFollowOwnerGoal;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobHoldPosGoal;
 import net.minecraft.world.phys.EntityHitResult;
@@ -387,29 +389,11 @@ public class RecruitEvents {
 
         Entity entity = event.getEntity();
         if(entity instanceof Mob mob && !(mob instanceof AbstractRecruitEntity)) {
-            if(TeamEvents.isControlledMob(mob.getType())) {
-                if(RecruitsServerConfig.ReplaceMobAI.get()) {
-                    try {
-                        java.lang.reflect.Field f = mob.goalSelector.getClass().getDeclaredField("availableGoals");
-                        f.setAccessible(true);
-                        ((java.util.Set<?>)f.get(mob.goalSelector)).clear();
-                        ((java.util.Set<?>)f.get(mob.targetSelector)).clear();
-                    } catch (Exception ignored) {}
-                }
-
-                if (mob instanceof PathfinderMob pathfinderMob) {
-                    pathfinderMob.goalSelector.addGoal(8, new net.minecraft.world.entity.ai.goal.RandomStrollGoal(pathfinderMob, 1.0D));
-                    pathfinderMob.goalSelector.addGoal(9, new net.minecraft.world.entity.ai.goal.LookAtPlayerGoal(pathfinderMob, Player.class, 8.0F));
-                    pathfinderMob.goalSelector.addGoal(10, new net.minecraft.world.entity.ai.goal.RandomLookAroundGoal(pathfinderMob));
-                    pathfinderMob.goalSelector.addGoal(7, new ControlledMobFollowOwnerGoal(pathfinderMob, 1.0D, 6.0F, 2.0F));
-                    pathfinderMob.goalSelector.addGoal(6, new ControlledMobHoldPosGoal(pathfinderMob, 1.0D));
-                }
-                CompoundTag nbt = mob.getPersistentData();
-                nbt.putBoolean("RecruitControlled", true);
-                if(!nbt.contains("HireCost")) nbt.putInt("HireCost", 1);
-                nbt.putBoolean("Owned", false);
-                nbt.putInt("Group", 0);
-                nbt.putInt("FollowState", 0);
+            CompoundTag nbt = mob.getPersistentData();
+            if(nbt.getBoolean("RecruitControlled")) {
+                restoreControlledMobInventory(mob);
+            } else if(TeamEvents.isControlledMob(mob.getType())) {
+                initializeControlledMob(mob);
             }
         }
     }
@@ -421,6 +405,11 @@ public class RecruitEvents {
         Entity target = event.getTarget();
         if(!(target instanceof Mob mob) || target instanceof AbstractRecruitEntity) return;
         CompoundTag nbt = mob.getPersistentData();
+        if(nbt.getBoolean("RecruitControlled")) {
+            restoreControlledMobInventory(mob);
+        } else if(TeamEvents.isControlledMob(mob.getType())) {
+            initializeControlledMob(mob);
+        }
         if(!nbt.getBoolean("RecruitControlled")) return;
 
         Player player = event.getEntity();
@@ -434,14 +423,13 @@ public class RecruitEvents {
                 nbt.putUUID("Owner", player.getUUID());
                 nbt.putInt("FollowState", 1);
                 if (mob instanceof PathfinderMob pathfinderMob) {
-                    pathfinderMob.goalSelector.addGoal(7, new ControlledMobFollowOwnerGoal(pathfinderMob, 1.0D, 6.0F, 2.0F));
-                    pathfinderMob.goalSelector.addGoal(6, new ControlledMobHoldPosGoal(pathfinderMob, 1.0D));
+                    applyControlledMobGoals(pathfinderMob);
                 }
                 player.sendSystemMessage(Component.literal("Mob recruited"));
                 event.setCancellationResult(InteractionResult.SUCCESS);
                 event.setCanceled(true);
             }
-        } else if(nbt.contains("Owner") && nbt.getUUID("Owner").equals(player.getUUID()) && player.isCrouching()) {
+        } else if(nbt.getBoolean("Owned") && nbt.contains("Owner") && nbt.getUUID("Owner").equals(player.getUUID())) {
             CommandEvents.openMobInventoryScreen(player, mob);
             event.setCancellationResult(InteractionResult.SUCCESS);
             event.setCanceled(true);
@@ -638,6 +626,8 @@ public class RecruitEvents {
             return canAttackPlayer(attacker, player);
         } else if (target instanceof AbstractRecruitEntity targetRecruit) {
             return canAttackRecruit(attacker, targetRecruit);
+        } else if (target instanceof Mob mob && mob.getPersistentData().getBoolean("RecruitControlled")) {
+            return canAttackControlledMob(attacker, mob);
         } else if (target instanceof Animal animal) {
             return canAttackAnimal(attacker, animal);
         } else {
@@ -665,8 +655,11 @@ public class RecruitEvents {
             if(player.getUUID().equals(recruit.getOwnerUUID())
                     || player.getUUID().equals(recruit.getProtectUUID())
                     || player.isCreative()
-                    || player.isSpectator()
-            )
+                    || player.isSpectator())
+                return false;
+        } else if (attacker instanceof Mob mob && mob.getPersistentData().getBoolean("RecruitControlled")) {
+            CompoundTag nbt = mob.getPersistentData();
+            if (nbt.getBoolean("Owned") && nbt.hasUUID("Owner") && player.getUUID().equals(nbt.getUUID("Owner")))
                 return false;
         }
         return canHarmTeam(attacker, player);
@@ -696,6 +689,22 @@ public class RecruitEvents {
         }
 
         return canHarmTeam(attacker, targetRecruit);
+    }
+
+    private static boolean canAttackControlledMob(LivingEntity attacker, Mob mob) {
+        CompoundTag nbt = mob.getPersistentData();
+        if (attacker instanceof AbstractRecruitEntity attackerRecruit) {
+            if (attackerRecruit.isOwned() && nbt.getBoolean("Owned") && nbt.hasUUID("Owner") &&
+                attackerRecruit.getOwnerUUID().equals(nbt.getUUID("Owner"))) {
+                return false;
+            }
+            if (attackerRecruit.getTeam() != null && mob.getTeam() != null &&
+                attackerRecruit.getTeam().equals(mob.getTeam()) &&
+                !attackerRecruit.getTeam().isAllowFriendlyFire()) {
+                return false;
+            }
+        }
+        return canHarmTeam(attacker, mob);
     }
 
     public static boolean isAlly(Team team1, Team team2) {
@@ -776,6 +785,16 @@ public class RecruitEvents {
         }
     }
 
+    @SubscribeEvent
+    public void onControlledMobDeath(LivingDeathEvent event) {
+        Entity target = event.getEntity();
+        if(!(target instanceof Mob mob) || target instanceof AbstractRecruitEntity) return;
+        CompoundTag nbt = mob.getPersistentData();
+        if(nbt.getBoolean("RecruitControlled")) {
+            dropControlledMobInventory(mob);
+        }
+    }
+
     private final List<AbstractArrow> trackedArrows = new ArrayList<>();
     private int tickCounter = 0;
 
@@ -840,5 +859,70 @@ public class RecruitEvents {
 
     public static MutableComponent TEXT_INTERACT_WARN(String name) {
         return Component.translatable("chat.recruits.text.block_interact_warn", name);
+    }
+
+    private static void initializeControlledMob(Mob mob) {
+        if (mob instanceof PathfinderMob pathfinderMob) {
+            applyControlledMobGoals(pathfinderMob);
+        }
+        CompoundTag nbt = mob.getPersistentData();
+        nbt.putBoolean("RecruitControlled", true);
+        if(!nbt.contains("HireCost")) nbt.putInt("HireCost", 1);
+        nbt.putBoolean("Owned", false);
+        nbt.putInt("Group", 0);
+        nbt.putInt("FollowState", 0);
+        restoreControlledMobInventory(mob);
+    }
+
+    private static void applyControlledMobGoals(PathfinderMob pathfinderMob) {
+        if (RecruitsServerConfig.ReplaceMobAI.get()) {
+            try {
+                java.lang.reflect.Field f = pathfinderMob.goalSelector.getClass().getDeclaredField("availableGoals");
+                f.setAccessible(true);
+                ((java.util.Set<?>) f.get(pathfinderMob.goalSelector)).clear();
+                ((java.util.Set<?>) f.get(pathfinderMob.targetSelector)).clear();
+            } catch (Exception ignored) {
+            }
+        }
+        pathfinderMob.goalSelector.addGoal(8, new net.minecraft.world.entity.ai.goal.RandomStrollGoal(pathfinderMob, 1.0D));
+        pathfinderMob.goalSelector.addGoal(9, new net.minecraft.world.entity.ai.goal.LookAtPlayerGoal(pathfinderMob, Player.class, 8.0F));
+        pathfinderMob.goalSelector.addGoal(10, new net.minecraft.world.entity.ai.goal.RandomLookAroundGoal(pathfinderMob));
+        pathfinderMob.goalSelector.addGoal(7, new ControlledMobFollowOwnerGoal(pathfinderMob, 1.0D, 6.0F, 2.0F));
+        pathfinderMob.goalSelector.addGoal(6, new ControlledMobHoldPosGoal(pathfinderMob, 1.0D));
+    }
+
+    private static void restoreControlledMobInventory(Mob mob) {
+        CompoundTag tag = mob.getPersistentData();
+        if (!tag.contains("MobInventory")) return;
+        ListTag list = tag.getList("MobInventory", 10);
+        ItemStack[] extra = new ItemStack[15];
+        for(int i = 0; i < list.size(); i++) {
+            CompoundTag ct = list.getCompound(i);
+            int slot = ct.getByte("Slot") & 255;
+            if (slot < extra.length) {
+                extra[slot] = ItemStack.of(ct);
+            }
+        }
+        mob.setItemSlot(EquipmentSlot.HEAD, getOrEmpty(extra,0));
+        mob.setItemSlot(EquipmentSlot.CHEST, getOrEmpty(extra,1));
+        mob.setItemSlot(EquipmentSlot.LEGS, getOrEmpty(extra,2));
+        mob.setItemSlot(EquipmentSlot.FEET, getOrEmpty(extra,3));
+        mob.setItemSlot(EquipmentSlot.OFFHAND, getOrEmpty(extra,4));
+        mob.setItemSlot(EquipmentSlot.MAINHAND, getOrEmpty(extra,5));
+    }
+
+    private static ItemStack getOrEmpty(ItemStack[] arr, int idx) {
+        return idx >= 0 && idx < arr.length && arr[idx] != null ? arr[idx] : ItemStack.EMPTY;
+    }
+
+    private static void dropControlledMobInventory(Mob mob) {
+        CompoundTag tag = mob.getPersistentData();
+        if (!tag.contains("MobInventory")) return;
+        ListTag list = tag.getList("MobInventory", 10);
+        for (int i = 0; i < list.size(); i++) {
+            ItemStack stack = ItemStack.of(list.getCompound(i));
+            if (!stack.isEmpty()) mob.spawnAtLocation(stack);
+        }
+        tag.remove("MobInventory");
     }
 }
