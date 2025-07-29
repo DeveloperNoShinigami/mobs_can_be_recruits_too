@@ -388,7 +388,15 @@ public class RecruitEvents {
         Entity entity = event.getEntity();
         if(entity instanceof Mob mob && !(mob instanceof AbstractRecruitEntity)) {
             if(TeamEvents.isControlledMob(mob.getType())) {
-                initializeControlledMob(mob);
+                if (mob instanceof PathfinderMob pathfinderMob) {
+                    applyControlledMobGoals(pathfinderMob);
+                }
+                CompoundTag nbt = mob.getPersistentData();
+                nbt.putBoolean("RecruitControlled", true);
+                if(!nbt.contains("HireCost")) nbt.putInt("HireCost", 1);
+                nbt.putBoolean("Owned", false);
+                nbt.putInt("Group", 0);
+                nbt.putInt("FollowState", 0);
             }
         }
     }
@@ -400,9 +408,6 @@ public class RecruitEvents {
         Entity target = event.getTarget();
         if(!(target instanceof Mob mob) || target instanceof AbstractRecruitEntity) return;
         CompoundTag nbt = mob.getPersistentData();
-        if(!nbt.getBoolean("RecruitControlled") && TeamEvents.isControlledMob(mob.getType())) {
-            initializeControlledMob(mob);
-        }
         if(!nbt.getBoolean("RecruitControlled")) return;
 
         Player player = event.getEntity();
@@ -422,7 +427,7 @@ public class RecruitEvents {
                 event.setCancellationResult(InteractionResult.SUCCESS);
                 event.setCanceled(true);
             }
-        } else if(nbt.getBoolean("Owned") && nbt.contains("Owner") && nbt.getUUID("Owner").equals(player.getUUID())) {
+        } else if(nbt.contains("Owner") && nbt.getUUID("Owner").equals(player.getUUID())) {
             CommandEvents.openMobInventoryScreen(player, mob);
             event.setCancellationResult(InteractionResult.SUCCESS);
             event.setCanceled(true);
@@ -821,18 +826,6 @@ public class RecruitEvents {
 
     public static MutableComponent TEXT_INTERACT_WARN(String name) {
         return Component.translatable("chat.recruits.text.block_interact_warn", name);
-    }
-
-    private static void initializeControlledMob(Mob mob) {
-        if (mob instanceof PathfinderMob pathfinderMob) {
-            applyControlledMobGoals(pathfinderMob);
-        }
-        CompoundTag nbt = mob.getPersistentData();
-        nbt.putBoolean("RecruitControlled", true);
-        if(!nbt.contains("HireCost")) nbt.putInt("HireCost", 1);
-        nbt.putBoolean("Owned", false);
-        nbt.putInt("Group", 0);
-        nbt.putInt("FollowState", 0);
     }
 
     private static void applyControlledMobGoals(PathfinderMob pathfinderMob) {
