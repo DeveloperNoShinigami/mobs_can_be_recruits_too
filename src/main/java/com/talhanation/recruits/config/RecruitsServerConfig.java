@@ -721,9 +721,9 @@ public class RecruitsServerConfig {
                         If true, replaces existing mob AI when UniversalMobControl is active.
                         Otherwise adds recruit behaviours on top of existing AI.
                         \t(takes effect after restart)
-                        \tdefault: false""")
+                        \tdefault: true""")
                 .worldRestart()
-                .define("ReplaceMobAI", false);
+                .define("ReplaceMobAI", true);
 
         AdditionalGunItems = BUILDER.comment("""
                         Additional gun items from other mods treated as firearms.

@@ -388,28 +388,7 @@ public class RecruitEvents {
         Entity entity = event.getEntity();
         if(entity instanceof Mob mob && !(mob instanceof AbstractRecruitEntity)) {
             if(TeamEvents.isControlledMob(mob.getType())) {
-                if(RecruitsServerConfig.ReplaceMobAI.get()) {
-                    try {
-                        java.lang.reflect.Field f = mob.goalSelector.getClass().getDeclaredField("availableGoals");
-                        f.setAccessible(true);
-                        ((java.util.Set<?>)f.get(mob.goalSelector)).clear();
-                        ((java.util.Set<?>)f.get(mob.targetSelector)).clear();
-                    } catch (Exception ignored) {}
-                }
-
-                if (mob instanceof PathfinderMob pathfinderMob) {
-                    pathfinderMob.goalSelector.addGoal(8, new net.minecraft.world.entity.ai.goal.RandomStrollGoal(pathfinderMob, 1.0D));
-                    pathfinderMob.goalSelector.addGoal(9, new net.minecraft.world.entity.ai.goal.LookAtPlayerGoal(pathfinderMob, Player.class, 8.0F));
-                    pathfinderMob.goalSelector.addGoal(10, new net.minecraft.world.entity.ai.goal.RandomLookAroundGoal(pathfinderMob));
-                    pathfinderMob.goalSelector.addGoal(7, new ControlledMobFollowOwnerGoal(pathfinderMob, 1.0D, 6.0F, 2.0F));
-                    pathfinderMob.goalSelector.addGoal(6, new ControlledMobHoldPosGoal(pathfinderMob, 1.0D));
-                }
-                CompoundTag nbt = mob.getPersistentData();
-                nbt.putBoolean("RecruitControlled", true);
-                if(!nbt.contains("HireCost")) nbt.putInt("HireCost", 1);
-                nbt.putBoolean("Owned", false);
-                nbt.putInt("Group", 0);
-                nbt.putInt("FollowState", 0);
+                initializeControlledMob(mob);
             }
         }
     }
@@ -421,6 +400,9 @@ public class RecruitEvents {
         Entity target = event.getTarget();
         if(!(target instanceof Mob mob) || target instanceof AbstractRecruitEntity) return;
         CompoundTag nbt = mob.getPersistentData();
+        if(!nbt.getBoolean("RecruitControlled") && TeamEvents.isControlledMob(mob.getType())) {
+            initializeControlledMob(mob);
+        }
         if(!nbt.getBoolean("RecruitControlled")) return;
 
         Player player = event.getEntity();
@@ -434,14 +416,13 @@ public class RecruitEvents {
                 nbt.putUUID("Owner", player.getUUID());
                 nbt.putInt("FollowState", 1);
                 if (mob instanceof PathfinderMob pathfinderMob) {
-                    pathfinderMob.goalSelector.addGoal(7, new ControlledMobFollowOwnerGoal(pathfinderMob, 1.0D, 6.0F, 2.0F));
-                    pathfinderMob.goalSelector.addGoal(6, new ControlledMobHoldPosGoal(pathfinderMob, 1.0D));
+                    applyControlledMobGoals(pathfinderMob);
                 }
                 player.sendSystemMessage(Component.literal("Mob recruited"));
                 event.setCancellationResult(InteractionResult.SUCCESS);
                 event.setCanceled(true);
             }
-        } else if(nbt.contains("Owner") && nbt.getUUID("Owner").equals(player.getUUID()) && player.isCrouching()) {
+        } else if(nbt.getBoolean("Owned") && nbt.contains("Owner") && nbt.getUUID("Owner").equals(player.getUUID())) {
             CommandEvents.openMobInventoryScreen(player, mob);
             event.setCancellationResult(InteractionResult.SUCCESS);
             event.setCanceled(true);
@@ -840,5 +821,34 @@ public class RecruitEvents {
 
     public static MutableComponent TEXT_INTERACT_WARN(String name) {
         return Component.translatable("chat.recruits.text.block_interact_warn", name);
+    }
+
+    private static void initializeControlledMob(Mob mob) {
+        if (mob instanceof PathfinderMob pathfinderMob) {
+            applyControlledMobGoals(pathfinderMob);
+        }
+        CompoundTag nbt = mob.getPersistentData();
+        nbt.putBoolean("RecruitControlled", true);
+        if(!nbt.contains("HireCost")) nbt.putInt("HireCost", 1);
+        nbt.putBoolean("Owned", false);
+        nbt.putInt("Group", 0);
+        nbt.putInt("FollowState", 0);
+    }
+
+    private static void applyControlledMobGoals(PathfinderMob pathfinderMob) {
+        if (RecruitsServerConfig.ReplaceMobAI.get()) {
+            try {
+                java.lang.reflect.Field f = pathfinderMob.goalSelector.getClass().getDeclaredField("availableGoals");
+                f.setAccessible(true);
+                ((java.util.Set<?>) f.get(pathfinderMob.goalSelector)).clear();
+                ((java.util.Set<?>) f.get(pathfinderMob.targetSelector)).clear();
+            } catch (Exception ignored) {
+            }
+        }
+        pathfinderMob.goalSelector.addGoal(8, new net.minecraft.world.entity.ai.goal.RandomStrollGoal(pathfinderMob, 1.0D));
+        pathfinderMob.goalSelector.addGoal(9, new net.minecraft.world.entity.ai.goal.LookAtPlayerGoal(pathfinderMob, Player.class, 8.0F));
+        pathfinderMob.goalSelector.addGoal(10, new net.minecraft.world.entity.ai.goal.RandomLookAroundGoal(pathfinderMob));
+        pathfinderMob.goalSelector.addGoal(7, new ControlledMobFollowOwnerGoal(pathfinderMob, 1.0D, 6.0F, 2.0F));
+        pathfinderMob.goalSelector.addGoal(6, new ControlledMobHoldPosGoal(pathfinderMob, 1.0D));
     }
 }
