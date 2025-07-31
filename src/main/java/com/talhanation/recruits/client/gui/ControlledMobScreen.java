@@ -2,6 +2,7 @@ package com.talhanation.recruits.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.inventory.ControlledMobMenu;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
@@ -12,6 +13,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 @OnlyIn(Dist.CLIENT)
 public class ControlledMobScreen extends ScreenBase<ControlledMobMenu> {
@@ -24,6 +26,14 @@ public class ControlledMobScreen extends ScreenBase<ControlledMobMenu> {
         this.mob = container.getMob();
         imageWidth = 176;
         imageHeight = 223;
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos, 70, 20,
+                Component.literal("Commands"),
+                button -> CommandEvents.openCommandScreen(minecraft.player)));
     }
 
     @Override
