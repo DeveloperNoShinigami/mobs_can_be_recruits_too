@@ -47,6 +47,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.nbt.ListTag;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobFollowOwnerGoal;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobHoldPosGoal;
+import com.talhanation.recruits.entities.ai.compat.ControlledMobWanderGoal;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.Team;
@@ -898,7 +899,7 @@ public class RecruitEvents {
             } catch (Exception ignored) {
             }
         }
-        pathfinderMob.goalSelector.addGoal(8, new net.minecraft.world.entity.ai.goal.RandomStrollGoal(pathfinderMob, 1.0D));
+        pathfinderMob.goalSelector.addGoal(8, new ControlledMobWanderGoal(pathfinderMob, 1.0D));
         pathfinderMob.goalSelector.addGoal(9, new net.minecraft.world.entity.ai.goal.LookAtPlayerGoal(pathfinderMob, Player.class, 8.0F));
         pathfinderMob.goalSelector.addGoal(10, new net.minecraft.world.entity.ai.goal.RandomLookAroundGoal(pathfinderMob));
         pathfinderMob.goalSelector.addGoal(7, new ControlledMobFollowOwnerGoal(pathfinderMob, 1.0D, 6.0F, 2.0F));
