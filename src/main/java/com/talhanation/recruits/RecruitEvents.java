@@ -65,6 +65,8 @@ import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -395,6 +397,16 @@ public class RecruitEvents {
             } else if(TeamEvents.isControlledMob(mob.getType())) {
                 initializeControlledMob(mob);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onRecruitJoinWorld(EntityJoinLevelEvent event){
+        if(event.getLevel().isClientSide()) return;
+        if(!RecruitsServerConfig.SpawnMobRecruits.get()) return;
+        Entity ent = event.getEntity();
+        if(ent instanceof AbstractRecruitEntity recruit){
+            maybeReplaceRecruit(recruit);
         }
     }
 
@@ -863,7 +875,7 @@ public class RecruitEvents {
         return Component.translatable("chat.recruits.text.block_interact_warn", name);
     }
 
-    private static void initializeControlledMob(Mob mob) {
+    public static void initializeControlledMob(Mob mob) {
         if (mob instanceof PathfinderMob pathfinderMob) {
             applyControlledMobGoals(pathfinderMob);
         }
@@ -891,6 +903,23 @@ public class RecruitEvents {
         pathfinderMob.goalSelector.addGoal(10, new net.minecraft.world.entity.ai.goal.RandomLookAroundGoal(pathfinderMob));
         pathfinderMob.goalSelector.addGoal(7, new ControlledMobFollowOwnerGoal(pathfinderMob, 1.0D, 6.0F, 2.0F));
         pathfinderMob.goalSelector.addGoal(6, new ControlledMobHoldPosGoal(pathfinderMob, 1.0D));
+    }
+
+    private static void maybeReplaceRecruit(AbstractRecruitEntity recruit){
+        List<String> ids = RecruitsServerConfig.ControlledMobIds.get();
+        if(ids.isEmpty()) return;
+        ResourceLocation id = ResourceLocation.tryParse(ids.get(recruit.getRandom().nextInt(ids.size())));
+        if(id == null || !ForgeRegistries.ENTITY_TYPES.containsKey(id)) return;
+        EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(id);
+        if(!(type instanceof EntityType)) return;
+        Entity e = type.create(recruit.getCommandSenderWorld());
+        if(!(e instanceof Mob mob)) return;
+        mob.moveTo(recruit.getX(), recruit.getY(), recruit.getZ(), recruit.getYRot(), recruit.getXRot());
+        initializeControlledMob(mob);
+        recruit.getCommandSenderWorld().addFreshEntity(mob);
+        if(RecruitsServerConfig.ReplaceRecruits.get()){
+            recruit.discard();
+        }
     }
   
     private static void restoreControlledMobInventory(Mob mob) {
