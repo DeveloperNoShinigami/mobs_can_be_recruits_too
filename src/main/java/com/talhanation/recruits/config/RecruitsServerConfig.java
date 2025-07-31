@@ -74,6 +74,8 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue PerMobCurrency;
     public static ForgeConfigSpec.ConfigValue<List<String>> MobCurrencyMap;
     public static ForgeConfigSpec.ConfigValue<List<String>> ControlledMobIds;
+    public static ForgeConfigSpec.BooleanValue SpawnMobRecruits;
+    public static ForgeConfigSpec.BooleanValue ReplaceRecruits;
     public static ForgeConfigSpec.BooleanValue UseAsyncPathfinding;
     public static ForgeConfigSpec.IntValue AsyncPathfindingThreadsCount;
     public static ForgeConfigSpec.BooleanValue UseAsyncTargetFinding;
@@ -754,6 +756,21 @@ public class RecruitsServerConfig {
                         \tdefault: []""")
                 .worldRestart()
                 .define("ControlledMobIds", new ArrayList<>());
+
+        SpawnMobRecruits = BUILDER.comment("""
+                        Spawn a mob from ControlledMobIds whenever a recruit entity is created.
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("SpawnMobRecruits", false);
+
+        ReplaceRecruits = BUILDER.comment("""
+                        Remove the original recruit entity after spawning the configured mob.
+                        Only has effect when SpawnMobRecruits is enabled.
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("ReplaceRecruits", false);
 
         BUILDER.pop();
         BUILDER.comment("Recruit Mod performance Config:").push("Performance");
