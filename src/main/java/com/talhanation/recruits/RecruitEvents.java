@@ -401,8 +401,9 @@ public class RecruitEvents {
             CompoundTag nbt = mob.getPersistentData();
             if(nbt.getBoolean("RecruitControlled")) {
                 restoreControlledMobInventory(mob);
-            } else if(TeamEvents.isControlledMob(mob.getType())) {
-                initializeControlledMob(mob);
+                if (mob instanceof PathfinderMob pathfinderMob) {
+                    applyControlledMobGoals(pathfinderMob);
+                }
             }
         }
     }
