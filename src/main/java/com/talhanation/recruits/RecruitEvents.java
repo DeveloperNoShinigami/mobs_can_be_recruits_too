@@ -49,8 +49,9 @@ import com.talhanation.recruits.entities.ai.compat.ControlledMobFollowOwnerGoal;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobHoldPosGoal;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobWanderGoal;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobTargetGoal;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.world.entity.ai.goal.RangedBowAttackGoal;
+import com.talhanation.recruits.entities.ai.compat.ControlledMobMeleeAttackGoal;
+import com.talhanation.recruits.entities.ai.compat.ControlledMobRangedBowAttackGoal;
+import com.talhanation.recruits.entities.ai.compat.ControlledMobRestGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
@@ -927,10 +928,11 @@ public class RecruitEvents {
         pathfinderMob.goalSelector.addGoal(10, new net.minecraft.world.entity.ai.goal.RandomLookAroundGoal(pathfinderMob));
         pathfinderMob.goalSelector.addGoal(7, new ControlledMobFollowOwnerGoal(pathfinderMob, 1.0D, 6.0F, 2.0F));
         pathfinderMob.goalSelector.addGoal(6, new ControlledMobHoldPosGoal(pathfinderMob, 1.0D));
+        pathfinderMob.goalSelector.addGoal(5, new ControlledMobRestGoal(pathfinderMob));
         if (pathfinderMob instanceof RangedAttackMob ranged) {
-            pathfinderMob.goalSelector.addGoal(4, new RangedBowAttackGoal<>((PathfinderMob & RangedAttackMob) ranged, 1.0D, 20, 15.0F));
+            pathfinderMob.goalSelector.addGoal(4, new ControlledMobRangedBowAttackGoal<>((PathfinderMob & RangedAttackMob) ranged, 1.0D, 20, 15.0F));
         } else {
-            pathfinderMob.goalSelector.addGoal(4, new MeleeAttackGoal(pathfinderMob, 1.2D, true));
+            pathfinderMob.goalSelector.addGoal(4, new ControlledMobMeleeAttackGoal(pathfinderMob, 1.2D, true));
         }
         pathfinderMob.targetSelector.addGoal(1, new HurtByTargetGoal(pathfinderMob));
         pathfinderMob.targetSelector.addGoal(2, new ControlledMobTargetGoal(pathfinderMob));
