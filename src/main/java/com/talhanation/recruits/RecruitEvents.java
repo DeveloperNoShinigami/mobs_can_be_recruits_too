@@ -131,6 +131,7 @@ public class RecruitEvents {
             applyCompanionValuesToControlledMob(template, mob);
         }
         mob.setCustomName(Component.literal(name));
+        applyCompanionProfession(mob);
     }
 
     public static void openPromoteScreen(Player player, AbstractRecruitEntity recruit) {
@@ -453,6 +454,7 @@ public class RecruitEvents {
                 if (mob instanceof PathfinderMob pathfinderMob) {
                     applyControlledMobGoals(pathfinderMob);
                 }
+                applyCompanionProfession(mob);
             }
         }
     }
@@ -1098,39 +1100,6 @@ public class RecruitEvents {
     }
 
     /**
-     * Copy persistent recruit-related data from a controlled mob into a newly
-     * created recruit entity.
-     */
-    private static void applyControlledMobValues(Mob mob, AbstractRecruitEntity recruit) {
-        CompoundTag tag = mob.getPersistentData();
-        if(tag.contains("Owner")) recruit.setOwnerUUID(Optional.of(tag.getUUID("Owner")));
-        recruit.setIsOwned(tag.getBoolean("Owned"));
-        recruit.setGroup(tag.getInt("Group"));
-        recruit.setFollowState(tag.getInt("FollowState"));
-        recruit.setHunger(tag.getFloat("Hunger"));
-        recruit.setMoral(tag.getFloat("Moral"));
-        recruit.setXp(tag.getInt("Xp"));
-        recruit.setXpLevel(tag.getInt("Level"));
-        if(tag.contains("UpkeepUUID")) recruit.setUpkeepUUID(Optional.of(tag.getUUID("UpkeepUUID")));
-        if(tag.contains("UpkeepPosX") && tag.contains("UpkeepPosY") && tag.contains("UpkeepPosZ")) {
-            recruit.setUpkeepPos(new BlockPos(tag.getInt("UpkeepPosX"), tag.getInt("UpkeepPosY"), tag.getInt("UpkeepPosZ")));
-        }
-        if(tag.contains("HoldX") && tag.contains("HoldY") && tag.contains("HoldZ")) {
-            recruit.setHoldPos(new Vec3(tag.getDouble("HoldX"), tag.getDouble("HoldY"), tag.getDouble("HoldZ")));
-        }
-        if(tag.contains("MobInventory")) {
-            ListTag list = tag.getList("MobInventory", 10);
-            for(int i=0;i<list.size();i++) {
-                CompoundTag ct = list.getCompound(i);
-                int slot = ct.getByte("Slot") & 255;
-                ItemStack stack = ItemStack.of(ct);
-                if(slot > 5) recruit.getInventory().setItem(slot, stack);
-                else recruit.setItemSlot(recruit.getEquipmentSlotIndex(slot), stack);
-            }
-        }
-    }
-
-    /**
      * Copy companion-specific values from a recruit template back into a controlled mob.
      */
     private static void applyCompanionValuesToControlledMob(AbstractRecruitEntity recruit, Mob mob) {
@@ -1168,6 +1137,22 @@ public class RecruitEvents {
             }
         }
         tag.put("MobInventory", list);
+    }
+
+    private static void applyCompanionProfession(Mob mob) {
+        CompoundTag tag = mob.getPersistentData();
+        if (!tag.contains("CompanionProfession")) return;
+        int profession = tag.getInt("CompanionProfession");
+        EntityType<? extends AbstractRecruitEntity> type = entitiesByProfession.get(profession);
+        if (type == null) return;
+        AbstractRecruitEntity template = type.create(mob.getCommandSenderWorld());
+        if (template instanceof ICompanion companion) {
+            companion.applyRecruitValues(template);
+            applyCompanionValuesToControlledMob(template, mob);
+        }
+        if (mob instanceof PathfinderMob pathfinderMob) {
+            applyControlledMobGoals(pathfinderMob);
+        }
     }
   
 }
