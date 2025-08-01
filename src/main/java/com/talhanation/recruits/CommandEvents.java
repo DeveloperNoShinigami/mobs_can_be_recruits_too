@@ -524,6 +524,16 @@ public class CommandEvents {
         }
     }
 
+    public static void onMountButton(UUID player_uuid, Mob mob, UUID mount_uuid, int group) {
+        if (isControlledMob(mob, player_uuid, group)) {
+            CompoundTag nbt = mob.getPersistentData();
+            nbt.putBoolean("ShouldMount", true);
+            if (mount_uuid != null) {
+                nbt.putUUID("MountUUID", mount_uuid);
+            }
+        }
+    }
+
     public static void onDismountButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.shouldMount(false, null);
@@ -534,9 +544,31 @@ public class CommandEvents {
         }
     }
 
+    public static void onDismountButton(UUID player_uuid, Mob mob, int group) {
+        if (isControlledMob(mob, player_uuid, group)) {
+            CompoundTag nbt = mob.getPersistentData();
+            nbt.putBoolean("ShouldMount", false);
+            if (mob.isPassenger()) {
+                mob.stopRiding();
+            }
+        }
+    }
+
     public static void onProtectButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID protect_uuid, int group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.shouldProtect(true, protect_uuid);
+        }
+    }
+
+    public static void onProtectButton(UUID player_uuid, Mob mob, UUID protect_uuid, int group) {
+        if (isControlledMob(mob, player_uuid, group)) {
+            CompoundTag nbt = mob.getPersistentData();
+            nbt.putBoolean("ShouldProtect", true);
+            if (protect_uuid != null) {
+                nbt.putUUID("ProtectUUID", protect_uuid);
+            } else {
+                nbt.remove("ProtectUUID");
+            }
         }
     }
 
@@ -820,6 +852,9 @@ public class CommandEvents {
 
     private static void applyControlledMobMovement(Mob mob, int movementState, ServerPlayer player) {
         CompoundTag nbt = mob.getPersistentData();
+        if (nbt.getBoolean("ShouldRest")) {
+            return;
+        }
         switch (movementState) {
             case 0 -> {
                 nbt.putInt("FollowState", 0);
