@@ -1135,14 +1135,31 @@ public class RecruitEvents {
      */
     private static void applyCompanionValuesToControlledMob(AbstractRecruitEntity recruit, Mob mob) {
         CompoundTag tag = mob.getPersistentData();
-        tag.putFloat("Hunger", recruit.getHunger());
-        tag.putFloat("Moral", recruit.getMorale());
-        tag.putInt("Level", recruit.getXpLevel());
-        tag.putInt("Xp", recruit.getXp());
+
+        // Preserve existing values if present so promotion keeps mob progress.
+        float hunger = tag.contains("Hunger") ? tag.getFloat("Hunger") : recruit.getHunger();
+        float moral = tag.contains("Moral") ? tag.getFloat("Moral") : recruit.getMorale();
+        int level = tag.contains("Level") ? tag.getInt("Level") : recruit.getXpLevel();
+        int xp = tag.contains("Xp") ? tag.getInt("Xp") : recruit.getXp();
+
+        tag.putFloat("Hunger", hunger);
+        tag.putFloat("Moral", moral);
+        tag.putInt("Level", level);
+        tag.putInt("Xp", xp);
+
+        ItemStack[] current = new ItemStack[RecruitInventoryMenu.INV_SIZE];
+        if(tag.contains("MobInventory")) {
+            ListTag existing = tag.getList("MobInventory", 10);
+            for(int i=0;i<existing.size();i++) {
+                CompoundTag ct = existing.getCompound(i);
+                int slot = ct.getByte("Slot") & 255;
+                if(slot < current.length) current[slot] = ItemStack.of(ct);
+            }
+        }
 
         ListTag list = new ListTag();
         for(int i=6;i<recruit.getInventory().getContainerSize();i++) {
-            ItemStack stack = recruit.getInventory().getItem(i);
+            ItemStack stack = current[i] != null ? current[i] : recruit.getInventory().getItem(i);
             if(!stack.isEmpty()) {
                 CompoundTag ct = new CompoundTag();
                 ct.putByte("Slot", (byte)i);
