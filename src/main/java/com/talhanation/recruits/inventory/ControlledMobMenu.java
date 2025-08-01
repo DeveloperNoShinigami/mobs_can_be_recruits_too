@@ -2,6 +2,7 @@ package com.talhanation.recruits.inventory;
 
 import com.mojang.datafixers.util.Pair;
 import com.talhanation.recruits.init.ModScreens;
+import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -38,7 +39,7 @@ public class ControlledMobMenu extends ContainerBase {
             EquipmentSlot.MAINHAND
     };
 
-    private static final int INV_SIZE = 15;
+    private static final int INV_SIZE = RecruitInventoryMenu.INV_SIZE;
     private static final String NBT_KEY = "MobInventory";
 
     private static SimpleContainer loadInventory(Mob mob){
@@ -168,9 +169,11 @@ public class ControlledMobMenu extends ContainerBase {
     }
 
     private void addMobInventorySlots(){
-        for(int k=0;k<3;++k){
-            for(int l=0;l<3;++l){
-                this.addSlot(new Slot(mobInventory,6 + l + k * 3, 2 * 18 + 82 + l * 18, 18 + k * 18));
+        int columns = RecruitInventoryMenu.INV_COLUMNS;
+        int rows = (mobInventory.getContainerSize() - 6) / columns;
+        for(int k=0;k<rows;++k){
+            for(int l=0;l<columns;++l){
+                this.addSlot(new Slot(mobInventory,6 + l + k * columns, 2 * 18 + 82 + l * 18, 18 + k * 18));
             }
         }
     }
