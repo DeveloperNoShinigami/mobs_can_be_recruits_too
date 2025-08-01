@@ -3,6 +3,8 @@ package com.talhanation.recruits.client.gui;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.PromoteContainer;
+import com.talhanation.recruits.inventory.PromoteMobContainer;
+import net.minecraft.world.entity.Mob;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
@@ -25,6 +27,7 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/professions/professions_main_gui.png");
     private final Player player;
     private final AbstractRecruitEntity recruit;
+    private final Mob mob;
     private EditBox textField;
     private int leftPos;
     private int topPos;
@@ -63,8 +66,13 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
         this.imageWidth = 197;
         this.imageHeight = 250;
         this.player = container.getPlayerEntity();
-        this.recruit = container.getRecruit();
-
+        if (container instanceof PromoteMobContainer mobContainer) {
+            this.mob = mobContainer.getMob();
+            this.recruit = null;
+        } else {
+            this.recruit = container.getRecruit();
+            this.mob = null;
+        }
     }
 
     @Override
@@ -85,7 +93,8 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
 
     private void setEditBox() {
         Component name = Component.literal("Name");
-        if(recruit.getCustomName() != null) name = recruit.getCustomName();
+        if(recruit != null && recruit.getCustomName() != null) name = recruit.getCustomName();
+        if(mob != null && mob.getCustomName() != null) name = mob.getCustomName();
 
         textField = new EditBox(font, leftPos + 16, topPos + 8, 170, 20, name);
         textField.setValue(name.getString());
@@ -110,31 +119,32 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
     private void setWidgets() {
         clearWidgets();
         setEditBox();
-        createProfessionButtons(BUTTON_MESSENGER, TOOLTIP_MESSENGER, 0, recruit.getXpLevel() >= 3);
-        createProfessionButtons(BUTTON_SCOUT, TOOLTIP_SCOUT, 1, recruit.getXpLevel() >= 3);
+        int level = recruit != null ? recruit.getXpLevel() : mob.getPersistentData().getInt("Level");
+        createProfessionButtons(BUTTON_MESSENGER, TOOLTIP_MESSENGER, 0, level >= 3);
+        createProfessionButtons(BUTTON_SCOUT, TOOLTIP_SCOUT, 1, level >= 3);
 
-        createProfessionButtons(BUTTON_PATROL_LEADER, TOOLTIP_PATROL_LEADER, 2,recruit.getXpLevel() >= 5);
-        createProfessionButtons(BUTTON_CAPTAIN, Main.isSmallShipsCompatible ? TOOLTIP_CAPTAIN : TOOLTIP_CAPTAIN_DISABLED, 3, recruit.getXpLevel() >= 5 && Main.isSmallShipsLoaded && Main.isSmallShipsCompatible);
-        createProfessionButtons(BUTTON_ASSASSIN, TOOLTIP_ASSASSIN, 4, false && recruit.getXpLevel() >= 5);
-        createProfessionButtons(BUTTON_SIEGE_ENGINEER, TOOLTIP_SIEGE_ENGINEER, 5, false && recruit.getXpLevel() >= 5 && Main.isSiegeWeaponsLoaded);
+        createProfessionButtons(BUTTON_PATROL_LEADER, TOOLTIP_PATROL_LEADER, 2, level >= 5);
+        createProfessionButtons(BUTTON_CAPTAIN, Main.isSmallShipsCompatible ? TOOLTIP_CAPTAIN : TOOLTIP_CAPTAIN_DISABLED, 3, level >= 5 && Main.isSmallShipsLoaded && Main.isSmallShipsCompatible);
+        createProfessionButtons(BUTTON_ASSASSIN, TOOLTIP_ASSASSIN, 4, false && level >= 5);
+        createProfessionButtons(BUTTON_SIEGE_ENGINEER, TOOLTIP_SIEGE_ENGINEER, 5, false && level >= 5 && Main.isSiegeWeaponsLoaded);
 
-        createProfessionButtons(BUTTON_GOVERNOR, TOOLTIP_GOVERNOR, 6, false && recruit.getXpLevel() >= 7);
-        createProfessionButtons(BUTTON_SPY, TOOLTIP_SPY, 7, false && recruit.getXpLevel() >= 7);
-        createProfessionButtons(BUTTON_ROGUE, TOOLTIP_ROGUE, 8, false && recruit.getXpLevel() >= 7);
+        createProfessionButtons(BUTTON_GOVERNOR, TOOLTIP_GOVERNOR, 6, false && level >= 7);
+        createProfessionButtons(BUTTON_SPY, TOOLTIP_SPY, 7, false && level >= 7);
+        createProfessionButtons(BUTTON_ROGUE, TOOLTIP_ROGUE, 8, false && level >= 7);
     }
 
     private Button createProfessionButtons(Component buttonText, Component buttonTooltip, int professionID, boolean active){
         Button professionButton = addRenderableWidget(new ExtendedButton(leftPos + 59, 31 + topPos + 23 * professionID, 80, 20, buttonText,
                 btn -> {
-                    if (recruit != null) {
-                        String name = this.textField.getValue();
-                        if(name.isEmpty() || name.isBlank()){
-                            name = recruit.getName().getString();
-                        }
-
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessagePromoteRecruit(this.recruit.getUUID(), professionID, name));
-                        onClose();
+                    String name = this.textField.getValue();
+                    if(recruit != null){
+                        if(name.isEmpty() || name.isBlank()) name = recruit.getName().getString();
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessagePromoteRecruit(recruit.getUUID(), professionID, name));
+                    } else if(mob != null){
+                        if(name.isEmpty() || name.isBlank()) name = mob.getName().getString();
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessagePromoteControlledMob(mob.getUUID(), professionID, name));
                     }
+                    onClose();
                 }
         ));
         professionButton.setTooltip(Tooltip.create(buttonTooltip));
