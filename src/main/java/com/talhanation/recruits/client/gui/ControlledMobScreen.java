@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.inventory.ControlledMobMenu;
+import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.network.MessageControlledMobGroup;
 import com.talhanation.recruits.network.MessageControlledMobStats;
 import com.talhanation.recruits.network.MessageRenameMob;
@@ -13,8 +14,11 @@ import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.Mob;
@@ -35,6 +39,9 @@ public class ControlledMobScreen extends ScreenBase<ControlledMobMenu> {
     public static int level;
     public static float morale;
     public static float hunger;
+
+    private static final MutableComponent TEXT_PROMOTE = Component.translatable("gui.recruits.inv.text.promote");
+    private static final MutableComponent TOOLTIP_PROMOTE = Component.translatable("gui.recruits.inv.tooltip.promote");
 
     private final Mob mob;
     private EditBox nameField;
@@ -62,6 +69,10 @@ public class ControlledMobScreen extends ScreenBase<ControlledMobMenu> {
         addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos, 70, 20,
                 Component.literal("Commands"),
                 button -> CommandEvents.openCommandScreen(minecraft.player)));
+        Button promoteButton = addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos + 24, 70, 20,
+                TEXT_PROMOTE,
+                btn -> RecruitEvents.openControlledMobPromoteScreen(minecraft.player, mob)));
+        promoteButton.setTooltip(Tooltip.create(TOOLTIP_PROMOTE));
     }
 
     @Override
