@@ -928,7 +928,7 @@ public class RecruitEvents {
         pathfinderMob.goalSelector.addGoal(7, new ControlledMobFollowOwnerGoal(pathfinderMob, 1.0D, 6.0F, 2.0F));
         pathfinderMob.goalSelector.addGoal(6, new ControlledMobHoldPosGoal(pathfinderMob, 1.0D));
         if (pathfinderMob instanceof RangedAttackMob ranged) {
-            pathfinderMob.goalSelector.addGoal(4, new RangedBowAttackGoal<PathfinderMob>((PathfinderMob) ranged, 1.0D, 20, 15.0F));
+            pathfinderMob.goalSelector.addGoal(4, new RangedBowAttackGoal<>((PathfinderMob & RangedAttackMob) ranged, 1.0D, 20, 15.0F));
         } else {
             pathfinderMob.goalSelector.addGoal(4, new MeleeAttackGoal(pathfinderMob, 1.2D, true));
         }
