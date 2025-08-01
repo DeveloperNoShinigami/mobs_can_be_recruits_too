@@ -113,20 +113,24 @@ public class RecruitEvents {
     }
 
     /**
-     * Promote a controlled mob to a companion role. The mob is replaced with the
-     * corresponding recruit entity and all relevant persistent data is copied.
+     * Promote a controlled mob to a companion role without replacing the entity.
+     * The mob keeps its species but gains all companion-related values.
      */
     public static void promoteControlledMob(Mob mob, int profession, String name, ServerPlayer player) {
-        EntityType<? extends AbstractRecruitEntity> companionType = entitiesByProfession.get(profession);
-        AbstractRecruitEntity recruit = companionType.create(mob.getCommandSenderWorld());
-        if (recruit instanceof ICompanion companion) {
-            recruit.setCustomName(Component.literal(name));
-            recruit.moveTo(mob.getX(), mob.getY(), mob.getZ(), mob.getYRot(), mob.getXRot());
-            applyControlledMobValues(mob, recruit);
-            companion.setOwnerName(player.getName().getString());
-            mob.discard();
-            recruit.getCommandSenderWorld().addFreshEntity(recruit);
+        EntityType<? extends AbstractRecruitEntity> type = entitiesByProfession.get(profession);
+        AbstractRecruitEntity template = type.create(mob.getCommandSenderWorld());
+        CompoundTag tag = mob.getPersistentData();
+        tag.putInt("CompanionProfession", profession);
+        tag.putBoolean("Owned", true);
+        tag.putUUID("Owner", player.getUUID());
+        tag.putString("OwnerName", player.getName().getString());
+        tag.putString("CustomName", name);
+
+        if (template instanceof ICompanion companion) {
+            companion.applyRecruitValues(template);
+            applyCompanionValuesToControlledMob(template, mob);
         }
+        mob.setCustomName(Component.literal(name));
     }
 
     public static void openPromoteScreen(Player player, AbstractRecruitEntity recruit) {
@@ -1124,6 +1128,29 @@ public class RecruitEvents {
                 else recruit.setItemSlot(recruit.getEquipmentSlotIndex(slot), stack);
             }
         }
+    }
+
+    /**
+     * Copy companion-specific values from a recruit template back into a controlled mob.
+     */
+    private static void applyCompanionValuesToControlledMob(AbstractRecruitEntity recruit, Mob mob) {
+        CompoundTag tag = mob.getPersistentData();
+        tag.putFloat("Hunger", recruit.getHunger());
+        tag.putFloat("Moral", recruit.getMorale());
+        tag.putInt("Level", recruit.getXpLevel());
+        tag.putInt("Xp", recruit.getXp());
+
+        ListTag list = new ListTag();
+        for(int i=6;i<recruit.getInventory().getContainerSize();i++) {
+            ItemStack stack = recruit.getInventory().getItem(i);
+            if(!stack.isEmpty()) {
+                CompoundTag ct = new CompoundTag();
+                ct.putByte("Slot", (byte)i);
+                stack.save(ct);
+                list.add(ct);
+            }
+        }
+        tag.put("MobInventory", list);
     }
   
 }
