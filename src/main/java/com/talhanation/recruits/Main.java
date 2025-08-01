@@ -125,6 +125,7 @@ public class Main {
                 MessageShields.class,
                 MessageDebugGui.class,
                 MessageRenameMob.class,
+                MessageControlledMobGroup.class,
                 MessageUpkeepEntity.class,
                 MessageClearTarget.class,
                 MessageCreateTeam.class,
