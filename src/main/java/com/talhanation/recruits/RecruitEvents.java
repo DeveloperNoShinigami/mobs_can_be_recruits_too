@@ -900,6 +900,12 @@ public class RecruitEvents {
         return Component.translatable("chat.recruits.text.block_interact_warn", name);
     }
 
+    /**
+     * Prepare a vanilla mob to behave as a recruit by setting up the same NBT
+     * keys used by {@link com.talhanation.recruits.entities.AbstractRecruitEntity}.
+     * Defaults mirror those written in {@code addAdditionalSaveData}: level 1,
+     * zero XP, 50 hunger and morale and a fresh payment timer.
+     */
     public static void initializeControlledMob(Mob mob) {
         if (mob instanceof PathfinderMob pathfinderMob) {
             applyControlledMobGoals(pathfinderMob);
@@ -910,6 +916,14 @@ public class RecruitEvents {
         nbt.putBoolean("Owned", false);
         nbt.putInt("Group", 0);
         nbt.putInt("FollowState", 0);
+        // initialize fields also used by recruits so that newly controlled mobs
+        // behave consistently with freshly spawned recruits
+        nbt.putInt("Xp", 0);                   // start with no experience
+        nbt.putInt("Level", 1);                // level 1 like applySpawnValues()
+        nbt.putFloat("Hunger", 50F);           // default hunger
+        nbt.putFloat("Moral", 50F);            // default morale
+        // timer for periodic payments - same logic as AbstractRecruitEntity#resetPaymentTimer
+        nbt.putInt("paymentTimer", 20 * 60 * RecruitsServerConfig.RecruitsPaymentInterval.get());
         restoreControlledMobInventory(mob);
     }
 
