@@ -37,6 +37,10 @@ public class RecruitInventoryMenu extends ContainerBase {
             EquipmentSlot.MAINHAND
     };
 
+    public static final int INV_COLUMNS = 3;
+    public static final int INV_ROWS = 3;
+    public static final int INV_SIZE = 6 + INV_COLUMNS * INV_ROWS;
+
     public RecruitInventoryMenu(int id, AbstractRecruitEntity recruit, Inventory playerInventory) {
         super(ModScreens.RECRUIT_CONTAINER_TYPE.get(), id, playerInventory, recruit.getInventory());
         this.recruit = recruit;

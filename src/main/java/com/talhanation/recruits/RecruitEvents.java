@@ -8,7 +8,7 @@ import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.inventory.PromoteContainer;
-import com.talhanation.recruits.inventory.ControlledMobMenu;
+import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.MessageOpenPromoteScreen;
 import com.talhanation.recruits.world.PillagerPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
@@ -1013,7 +1013,7 @@ public class RecruitEvents {
         CompoundTag tag = mob.getPersistentData();
         if (!tag.contains("MobInventory")) return;
         ListTag list = tag.getList("MobInventory", 10);
-        ItemStack[] extra = new ItemStack[15];
+        ItemStack[] extra = new ItemStack[RecruitInventoryMenu.INV_SIZE];
         for(int i = 0; i < list.size(); i++) {
             CompoundTag ct = list.getCompound(i);
             int slot = ct.getByte("Slot") & 255;
