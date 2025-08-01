@@ -6,6 +6,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Mob;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -34,10 +35,24 @@ public class MessageUpkeepEntity implements Message<MessageUpkeepEntity> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                context.getSender().getBoundingBox().inflate(100)
-        ).forEach(recruit -> CommandEvents.onUpkeepCommand(player_uuid, recruit, group, true, target, null));
+        List<Mob> mobs = player.getCommandSenderWorld().getEntitiesOfClass(Mob.class,
+                context.getSender().getBoundingBox().inflate(100),
+                m -> {
+                    if (m instanceof AbstractRecruitEntity recruit) {
+                        return recruit.isEffectedByCommand(player_uuid, group);
+                    }
+                    return m.getPersistentData().getBoolean("RecruitControlled") &&
+                            m.getPersistentData().getBoolean("Owned") &&
+                            m.getPersistentData().getUUID("Owner").equals(player_uuid) &&
+                            (m.getPersistentData().getInt("Group") == this.group || this.group == 0);
+                });
+        for (Mob mob : mobs) {
+            if (mob instanceof AbstractRecruitEntity recruit) {
+                CommandEvents.onUpkeepCommand(player_uuid, recruit, group, true, target, null);
+            } else {
+                CommandEvents.onUpkeepCommand(player_uuid, mob, group, true, target, null);
+            }
+        }
     }
 
     public MessageUpkeepEntity fromBytes(FriendlyByteBuf buf) {

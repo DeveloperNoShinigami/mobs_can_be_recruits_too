@@ -5,6 +5,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Mob;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -33,9 +34,23 @@ public class MessageRangedFire implements Message<MessageRangedFire> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer serverPlayer = context.getSender();
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
-        for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onRangedFireCommand(serverPlayer, this.player, recruits, group, should);
+        List<Mob> mobs = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(Mob.class,
+                context.getSender().getBoundingBox().inflate(100),
+                m -> {
+                    if (m instanceof AbstractRecruitEntity recruit) {
+                        return recruit.isEffectedByCommand(this.player, group);
+                    }
+                    return m.getPersistentData().getBoolean("RecruitControlled") &&
+                            m.getPersistentData().getBoolean("Owned") &&
+                            m.getPersistentData().getUUID("Owner").equals(this.player) &&
+                            (m.getPersistentData().getInt("Group") == this.group || this.group == 0);
+                });
+        for (Mob m : mobs) {
+            if (m instanceof AbstractRecruitEntity recruit) {
+                CommandEvents.onRangedFireCommand(serverPlayer, this.player, recruit, group, should);
+            } else {
+                CommandEvents.onRangedFireCommand(serverPlayer, this.player, m, group, should);
+            }
         }
     }
     public MessageRangedFire fromBytes(FriendlyByteBuf buf) {

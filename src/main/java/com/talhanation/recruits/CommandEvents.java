@@ -281,6 +281,12 @@ public class CommandEvents {
         }
     }
 
+    public static void onAggroCommand(UUID player_uuid, Mob mob, int x_state, int group) {
+        if (isControlledMob(mob, player_uuid, group)) {
+            mob.getPersistentData().putInt("AggroState", x_state);
+        }
+    }
+
     public static void onStrategicFireCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
 
@@ -293,6 +299,22 @@ public class CommandEvents {
                         BlockPos blockpos = blockHitResult.getBlockPos();
                         bowman.setStrategicFirePos(blockpos);
                     }
+                }
+            }
+        }
+    }
+
+    public static void onStrategicFireCommand(Player player, UUID player_uuid, Mob mob, int group, boolean should) {
+        if (isControlledMob(mob, player_uuid, group)) {
+            CompoundTag nbt = mob.getPersistentData();
+            nbt.putBoolean("ShouldStrategicFire", should);
+            if (should) {
+                HitResult hitResult = player.pick(100, 1F, false);
+                if (hitResult != null && hitResult.getType() == HitResult.Type.BLOCK) {
+                    BlockPos pos = ((BlockHitResult) hitResult).getBlockPos();
+                    nbt.putInt("StrategicFireX", pos.getX());
+                    nbt.putInt("StrategicFireY", pos.getY());
+                    nbt.putInt("StrategicFireZ", pos.getZ());
                 }
             }
         }
@@ -528,11 +550,27 @@ public class CommandEvents {
         }
     }
 
+    public static void onClearTargetButton(UUID player_uuid, Mob mob, int group) {
+        if (isControlledMob(mob, player_uuid, group)) {
+            mob.setTarget(null);
+        }
+    }
+
     public static void onClearUpkeepButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             //Main.LOGGER.debug("event: clear");
             recruit.clearUpkeepEntity();
             recruit.clearUpkeepPos();
+        }
+    }
+
+    public static void onClearUpkeepButton(UUID player_uuid, Mob mob, int group) {
+        if (isControlledMob(mob, player_uuid, group)) {
+            CompoundTag nbt = mob.getPersistentData();
+            nbt.remove("UpkeepUUID");
+            nbt.remove("UpkeepPosX");
+            nbt.remove("UpkeepPosY");
+            nbt.remove("UpkeepPosZ");
         }
     }
     public static void onUpkeepCommand(UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean isEntity, UUID entity_uuid, BlockPos blockPos) {
@@ -552,9 +590,32 @@ public class CommandEvents {
         }
     }
 
+    public static void onUpkeepCommand(UUID player_uuid, Mob mob, int group, boolean isEntity, UUID entity_uuid, BlockPos blockPos) {
+        if (isControlledMob(mob, player_uuid, group)) {
+            CompoundTag nbt = mob.getPersistentData();
+            if (isEntity && entity_uuid != null) {
+                nbt.putUUID("UpkeepUUID", entity_uuid);
+                nbt.remove("UpkeepPosX");
+                nbt.remove("UpkeepPosY");
+                nbt.remove("UpkeepPosZ");
+            } else {
+                nbt.putInt("UpkeepPosX", blockPos.getX());
+                nbt.putInt("UpkeepPosY", blockPos.getY());
+                nbt.putInt("UpkeepPosZ", blockPos.getZ());
+                nbt.remove("UpkeepUUID");
+            }
+        }
+    }
+
     public static void onShieldsCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean shields) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.setShouldBlock(shields);
+        }
+    }
+
+    public static void onShieldsCommand(ServerPlayer serverPlayer, UUID player_uuid, Mob mob, int group, boolean shields) {
+        if (isControlledMob(mob, player_uuid, group)) {
+            mob.getPersistentData().putBoolean("ShouldBlock", shields);
         }
     }
 
@@ -564,9 +625,21 @@ public class CommandEvents {
         }
     }
 
+    public static void onRangedFireCommand(ServerPlayer serverPlayer, UUID player_uuid, Mob mob, int group, boolean should) {
+        if (isControlledMob(mob, player_uuid, group)) {
+            mob.getPersistentData().putBoolean("ShouldRanged", should);
+        }
+    }
+
     public static void onRestCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.setShouldRest(should);
+        }
+    }
+
+    public static void onRestCommand(ServerPlayer serverPlayer, UUID player_uuid, Mob mob, int group, boolean should) {
+        if (isControlledMob(mob, player_uuid, group)) {
+            mob.getPersistentData().putBoolean("ShouldRest", should);
         }
     }
 
@@ -735,6 +808,14 @@ public class CommandEvents {
         nbt.put("recruits-groups", groupList);
 
         return nbt;
+    }
+
+    private static boolean isControlledMob(Mob mob, UUID player_uuid, int group) {
+        CompoundTag nbt = mob.getPersistentData();
+        return nbt.getBoolean("RecruitControlled") &&
+                nbt.getBoolean("Owned") &&
+                nbt.getUUID("Owner").equals(player_uuid) &&
+                (group == 0 || nbt.getInt("Group") == group);
     }
 
     private static void applyControlledMobMovement(Mob mob, int movementState, ServerPlayer player) {

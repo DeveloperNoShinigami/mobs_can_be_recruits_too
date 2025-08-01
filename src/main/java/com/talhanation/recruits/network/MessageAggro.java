@@ -5,6 +5,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
@@ -47,15 +48,24 @@ public class MessageAggro implements Message<MessageAggro> {
         }
 
 
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                player.getBoundingBox().inflate(boundBoxInflateModifier)
-        ).forEach((recruit) -> {
-            if (fromGui && !recruit.getUUID().equals(this.recruit)) {
-                return;
+        player.getCommandSenderWorld().getEntitiesOfClass(Mob.class,
+                player.getBoundingBox().inflate(boundBoxInflateModifier),
+                m -> {
+                    if (m instanceof AbstractRecruitEntity recruit) {
+                        if (fromGui && !recruit.getUUID().equals(this.recruit)) return false;
+                        return recruit.isEffectedByCommand(this.player, group);
+                    }
+                    if (fromGui) return false;
+                    return m.getPersistentData().getBoolean("RecruitControlled") &&
+                            m.getPersistentData().getBoolean("Owned") &&
+                            m.getPersistentData().getUUID("Owner").equals(this.player) &&
+                            (m.getPersistentData().getInt("Group") == this.group || this.group == 0);
+                }).forEach(m -> {
+            if (m instanceof AbstractRecruitEntity recruit) {
+                CommandEvents.onAggroCommand(this.player, recruit, this.state, group, fromGui);
+            } else {
+                CommandEvents.onAggroCommand(this.player, m, this.state, group);
             }
-
-            CommandEvents.onAggroCommand(this.player, recruit, this.state, group, fromGui);
         });
     }
 
