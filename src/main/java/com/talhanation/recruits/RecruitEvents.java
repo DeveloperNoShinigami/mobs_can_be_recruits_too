@@ -8,6 +8,7 @@ import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.inventory.PromoteContainer;
+import com.talhanation.recruits.inventory.ControlledMobMenu;
 import com.talhanation.recruits.network.MessageOpenPromoteScreen;
 import com.talhanation.recruits.world.PillagerPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
@@ -939,6 +940,12 @@ public class RecruitEvents {
         return Component.translatable("chat.recruits.text.block_interact_warn", name);
     }
 
+    /**
+     * Prepare a vanilla mob to behave as a recruit by setting up the same NBT
+     * keys used by {@link com.talhanation.recruits.entities.AbstractRecruitEntity}.
+     * Defaults mirror those written in {@code addAdditionalSaveData}: level 1,
+     * zero XP, 50 hunger and morale and a fresh payment timer.
+     */
     public static void initializeControlledMob(Mob mob) {
         if (mob instanceof PathfinderMob pathfinderMob) {
             applyControlledMobGoals(pathfinderMob);
@@ -950,6 +957,13 @@ public class RecruitEvents {
         nbt.putInt("Group", 0);
         nbt.putInt("FollowState", 0);
         nbt.putInt("PaymentTimer", AbstractRecruitEntity.getPaymentIntervalTicks());
+      
+        // initialize fields also used by recruits so that newly controlled mobs
+        // behave consistently with freshly spawned recruits
+        nbt.putInt("Xp", 0);                   // start with no experience
+        nbt.putInt("Level", 1);                // level 1 like applySpawnValues()
+        nbt.putFloat("Hunger", 50F);           // default hunger
+        nbt.putFloat("Moral", 50F);            // default morale
         restoreControlledMobInventory(mob);
     }
 
@@ -1013,6 +1027,12 @@ public class RecruitEvents {
         mob.setItemSlot(EquipmentSlot.FEET, getOrEmpty(extra,3));
         mob.setItemSlot(EquipmentSlot.OFFHAND, getOrEmpty(extra,4));
         mob.setItemSlot(EquipmentSlot.MAINHAND, getOrEmpty(extra,5));
+        if(tag.contains("MobData")){
+            CompoundTag data = tag.getCompound("MobData");
+            for(String key : ControlledMobMenu.EXTRA_KEYS){
+                if(data.contains(key)) tag.put(key, data.get(key).copy());
+            }
+        }
     }
 
     private static ItemStack getOrEmpty(ItemStack[] arr, int idx) {
@@ -1028,6 +1048,7 @@ public class RecruitEvents {
             if (!stack.isEmpty()) mob.spawnAtLocation(stack);
         }
         tag.remove("MobInventory");
+        tag.remove("MobData");
     }
   
 }
