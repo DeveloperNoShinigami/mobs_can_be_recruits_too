@@ -66,6 +66,7 @@ import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.LevelEvent;
@@ -458,6 +459,7 @@ public class RecruitEvents {
                 nbt.putBoolean("Owned", true);
                 nbt.putUUID("Owner", player.getUUID());
                 nbt.putInt("FollowState", 1);
+                resetControlledMobPaymentTimer(mob);
                 if (mob instanceof PathfinderMob pathfinderMob) {
                     applyControlledMobGoals(pathfinderMob);
                 }
@@ -868,6 +870,43 @@ public class RecruitEvents {
         }
     }
 
+    @SubscribeEvent
+    public void onControlledMobTick(LivingEvent.LivingTickEvent event){
+        if(event.getEntity().level().isClientSide()) return;
+        if(!(event.getEntity() instanceof Mob mob) || mob instanceof AbstractRecruitEntity) return;
+        CompoundTag nbt = mob.getPersistentData();
+        if(!nbt.getBoolean("RecruitControlled") || !nbt.getBoolean("Owned")) return;
+
+        if(RecruitsServerConfig.RecruitsPayment.get()){
+            int timer = nbt.getInt("PaymentTimer");
+            if(timer > 0){
+                nbt.putInt("PaymentTimer", timer - 1);
+            }
+            if(timer == 0){
+                doControlledNoPaymentAction(mob);
+                resetControlledMobPaymentTimer(mob);
+            }
+        }
+    }
+
+    private static void resetControlledMobPaymentTimer(Mob mob){
+        mob.getPersistentData().putInt("PaymentTimer", AbstractRecruitEntity.getPaymentIntervalTicks());
+    }
+
+    private static void doControlledNoPaymentAction(Mob mob){
+        AbstractRecruitEntity.NoPaymentAction action = RecruitsServerConfig.RecruitsNoPaymentAction.get();
+        CompoundTag nbt = mob.getPersistentData();
+        switch (action){
+            case DISBAND_KEEP_TEAM -> nbt.putBoolean("Owned", false);
+            case DISBAND -> {
+                nbt.putBoolean("Owned", false);
+                nbt.putInt("Group", 0);
+            }
+            case DESPAWN -> mob.discard();
+            case MORALE_LOSS -> {}
+        }
+    }
+
     public byte getSavedWarning(Player player) {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
@@ -910,6 +949,7 @@ public class RecruitEvents {
         nbt.putBoolean("Owned", false);
         nbt.putInt("Group", 0);
         nbt.putInt("FollowState", 0);
+        nbt.putInt("PaymentTimer", AbstractRecruitEntity.getPaymentIntervalTicks());
         restoreControlledMobInventory(mob);
     }
 

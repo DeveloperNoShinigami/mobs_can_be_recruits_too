@@ -2108,9 +2108,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     }
 
-    public void resetPaymentTimer(){
+    public static int getPaymentIntervalTicks(){
         int interval = RecruitsServerConfig.RecruitsPaymentInterval.get();
-        this.paymentTimer = 20*60*interval;
+        return 20 * 60 * interval;
+    }
+
+    public void resetPaymentTimer(){
+        this.paymentTimer = getPaymentIntervalTicks();
     }
 
     public enum NoPaymentAction{
