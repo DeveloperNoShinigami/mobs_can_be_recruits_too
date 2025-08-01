@@ -1395,6 +1395,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
     }
 
     public void updateHunger(){
+        if(!RecruitsServerConfig.RecruitHunger.get())
+            return;
         float hunger = getHunger();
 
         if (this.getFollowState() == 2) {
@@ -1422,10 +1424,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
     public boolean hasFoodInInv(){
         return this.getInventory().items
                 .stream()
-                .anyMatch(ItemStack::isEdible);
+                .anyMatch(this::canEatItemStack);
     }
 
     public boolean needsToEat(){
+        if(!RecruitsServerConfig.RecruitHunger.get())
+            return false;
         if (getHunger() <= 50F){
             return true;
         }
@@ -1444,10 +1448,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
     }
 
     public boolean isStarving(){
+        if(!RecruitsServerConfig.RecruitHunger.get())
+            return false;
         return (getHunger() <= 1F );
     }
 
     public boolean isSaturated(){
+        if(!RecruitsServerConfig.RecruitHunger.get())
+            return true;
         return (getHunger() >= 90F);
     }
 
@@ -2056,6 +2064,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         ResourceLocation location = ForgeRegistries.ITEMS.getKey(stack.getItem());
 
         if(RecruitsServerConfig.FoodBlackList.get().contains(location.toString())){
+            return false;
+        }
+        List<String> allowed = RecruitsServerConfig.RecruitFoodList.get();
+        if(!allowed.isEmpty() && !allowed.contains(location.toString())){
             return false;
         }
         return stack.isEdible();

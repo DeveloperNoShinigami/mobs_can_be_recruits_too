@@ -46,6 +46,8 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.ConfigValue<List<List<String>>> NomadStartEquipments;
     public static ForgeConfigSpec.ConfigValue<List<String>> AcceptedDamagesourceImmunity;
     public static ForgeConfigSpec.ConfigValue<List<String>> FoodBlackList;
+    public static ForgeConfigSpec.BooleanValue RecruitHunger;
+    public static ForgeConfigSpec.ConfigValue<List<String>> RecruitFoodList;
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockPlaceBreakEvents;
     public static ForgeConfigSpec.BooleanValue NeutralRecruitsBlockPlaceBreakEvents;
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockInteractingEvents;
@@ -94,6 +96,8 @@ public class RecruitsServerConfig {
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:poisonous_potato", "minecraft:spider_eye", "minecraft:pufferfish"));
+    public static ArrayList<String> RECRUIT_FOOD = new ArrayList<>(
+            Arrays.asList("minecraft:bread", "minecraft:cooked_beef", "minecraft:cooked_chicken"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:mule", "minecraft:donkey", "minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "smallships:galley", "smallships:drakkar", "camels:camel"));
     public static ArrayList<List<String>> START_EQUIPMENT_RECRUIT = new ArrayList<>(
@@ -178,12 +182,26 @@ public class RecruitsServerConfig {
                 .define("TargetBlackList", TARGET_BLACKLIST);
 
         FoodBlackList = BUILDER.comment("""
-                        
-                        List of foods that recruits should not eat. 
+
+                        List of foods that recruits should not eat.
                         \t(takes effect after restart)
                         \tFood items in this list will not be eaten by recruits and also not be picked up from upkeep.""")
                 .worldRestart()
                 .define("FoodBlackList", FOOD_BLACKLIST);
+
+        RecruitFoodList = BUILDER.comment("""
+                        List of foods recruits are allowed to eat. Leave empty to allow any food item not blacklisted.
+                        \t(takes effect after restart)
+                        default: ["minecraft:bread", "minecraft:cooked_beef", "minecraft:cooked_chicken"]""")
+                .worldRestart()
+                .define("RecruitFoodList", RECRUIT_FOOD);
+
+        RecruitHunger = BUILDER.comment("""
+                        Enable hunger mechanics for recruits.
+                        \t(takes effect after restart)
+                        default: true""")
+                .worldRestart()
+                .define("RecruitHunger", true);
 
         MountWhiteList = BUILDER.comment("""
                         
