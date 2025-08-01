@@ -5,6 +5,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.inventory.ControlledMobMenu;
 import com.talhanation.recruits.network.MessageControlledMobGroup;
+import com.talhanation.recruits.network.MessageControlledMobStats;
 import com.talhanation.recruits.network.MessageRenameMob;
 import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.client.gui.widgets.ScrollDropDownMenu;
@@ -28,6 +29,12 @@ import java.util.Comparator;
 @OnlyIn(Dist.CLIENT)
 public class ControlledMobScreen extends ScreenBase<ControlledMobMenu> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/recruit_gui.png");
+    private static final int fontColor = 4210752;
+
+    public static int xp;
+    public static int level;
+    public static float morale;
+    public static float hunger;
 
     private final Mob mob;
     private EditBox nameField;
@@ -114,6 +121,27 @@ public class ControlledMobScreen extends ScreenBase<ControlledMobMenu> {
         if(groupSelectionDropDownMenu != null) {
             groupSelectionDropDownMenu.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
         }
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().scale(0.7F, 0.7F, 1F);
+
+        int k = 112;
+        int l = 32;
+        int gap = 42;
+
+        guiGraphics.drawString(font, "Lvl.:", k, l, fontColor, false);
+        guiGraphics.drawString(font, String.valueOf(level), k + gap, l, fontColor, false);
+        guiGraphics.drawString(font, "Exp.:", k, l + 10, fontColor, false);
+        guiGraphics.drawString(font, String.valueOf(xp), k + gap, l + 10, fontColor, false);
+        guiGraphics.drawString(font, "Morale:", k, l + 20, fontColor, false);
+        guiGraphics.drawString(font, String.valueOf((int) morale), k + gap, l + 20, fontColor, false);
+        guiGraphics.drawString(font, "Hunger:", k, l + 30, fontColor, false);
+        guiGraphics.drawString(font, String.valueOf((int) hunger), k + gap, l + 30, fontColor, false);
+        guiGraphics.pose().popPose();
     }
 
     @Override

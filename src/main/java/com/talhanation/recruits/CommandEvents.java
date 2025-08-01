@@ -343,6 +343,13 @@ public class CommandEvents {
     public static void openMobInventoryScreen(Player player, Mob mob){
         if(player instanceof ServerPlayer serverPlayer){
             updateRecruitInventoryScreen(serverPlayer);
+            CompoundTag nbt = new CompoundTag();
+            CompoundTag data = mob.getPersistentData();
+            if (data.contains("Xp")) nbt.putInt("Xp", data.getInt("Xp"));
+            if (data.contains("Level")) nbt.putInt("Level", data.getInt("Level"));
+            if (data.contains("Moral")) nbt.putFloat("Moral", data.getFloat("Moral"));
+            if (data.contains("Hunger")) nbt.putFloat("Hunger", data.getFloat("Hunger"));
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new MessageControlledMobStats(nbt));
             NetworkHooks.openScreen(serverPlayer, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
@@ -524,6 +531,16 @@ public class CommandEvents {
         }
     }
 
+    public static void onMountButton(UUID player_uuid, Mob mob, UUID mount_uuid, int group) {
+        if (isControlledMob(mob, player_uuid, group)) {
+            CompoundTag nbt = mob.getPersistentData();
+            nbt.putBoolean("ShouldMount", true);
+            if (mount_uuid != null) {
+                nbt.putUUID("MountUUID", mount_uuid);
+            }
+        }
+    }
+
     public static void onDismountButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.shouldMount(false, null);
@@ -534,9 +551,31 @@ public class CommandEvents {
         }
     }
 
+    public static void onDismountButton(UUID player_uuid, Mob mob, int group) {
+        if (isControlledMob(mob, player_uuid, group)) {
+            CompoundTag nbt = mob.getPersistentData();
+            nbt.putBoolean("ShouldMount", false);
+            if (mob.isPassenger()) {
+                mob.stopRiding();
+            }
+        }
+    }
+
     public static void onProtectButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID protect_uuid, int group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.shouldProtect(true, protect_uuid);
+        }
+    }
+
+    public static void onProtectButton(UUID player_uuid, Mob mob, UUID protect_uuid, int group) {
+        if (isControlledMob(mob, player_uuid, group)) {
+            CompoundTag nbt = mob.getPersistentData();
+            nbt.putBoolean("ShouldProtect", true);
+            if (protect_uuid != null) {
+                nbt.putUUID("ProtectUUID", protect_uuid);
+            } else {
+                nbt.remove("ProtectUUID");
+            }
         }
     }
 
@@ -820,6 +859,9 @@ public class CommandEvents {
 
     private static void applyControlledMobMovement(Mob mob, int movementState, ServerPlayer player) {
         CompoundTag nbt = mob.getPersistentData();
+        if (nbt.getBoolean("ShouldRest")) {
+            return;
+        }
         switch (movementState) {
             case 0 -> {
                 nbt.putInt("FollowState", 0);
