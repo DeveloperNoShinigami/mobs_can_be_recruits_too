@@ -40,6 +40,13 @@ public class ControlledMobMenu extends ContainerBase {
 
     private static final int INV_SIZE = 15;
     private static final String NBT_KEY = "MobInventory";
+    private static final String DATA_KEY = "MobData";
+    public static final String[] EXTRA_KEYS = new String[]{
+            "FollowState", "HoldX", "HoldY", "HoldZ", "Group", "AggroState",
+            "ShouldBlock", "ShouldRanged", "ShouldRest", "ShouldStrategicFire",
+            "StrategicFireX", "StrategicFireY", "StrategicFireZ", "UpkeepUUID",
+            "UpkeepPosX", "UpkeepPosY", "UpkeepPosZ", "Owner", "Owned", "HireCost"
+    };
 
     private static SimpleContainer loadInventory(Mob mob){
         SimpleContainer inv = new SimpleContainer(INV_SIZE);
@@ -60,6 +67,12 @@ public class ControlledMobMenu extends ContainerBase {
                 }
             }
         }
+        if(tag.contains(DATA_KEY)){
+            CompoundTag data = tag.getCompound(DATA_KEY);
+            for(String key : EXTRA_KEYS){
+                if(data.contains(key)) tag.put(key, data.get(key).copy());
+            }
+        }
         return inv;
     }
 
@@ -76,6 +89,11 @@ public class ControlledMobMenu extends ContainerBase {
             }
         }
         tag.put(NBT_KEY, list);
+        CompoundTag data = new CompoundTag();
+        for(String key : EXTRA_KEYS){
+            if(tag.contains(key)) data.put(key, tag.get(key).copy());
+        }
+        tag.put(DATA_KEY, data);
         mob.setItemSlot(EquipmentSlot.HEAD, mobInventory.getItem(0));
         mob.setItemSlot(EquipmentSlot.CHEST, mobInventory.getItem(1));
         mob.setItemSlot(EquipmentSlot.LEGS, mobInventory.getItem(2));
