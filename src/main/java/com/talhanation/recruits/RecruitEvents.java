@@ -8,6 +8,7 @@ import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.inventory.PromoteContainer;
+import com.talhanation.recruits.inventory.ControlledMobMenu;
 import com.talhanation.recruits.network.MessageOpenPromoteScreen;
 import com.talhanation.recruits.world.PillagerPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
@@ -973,6 +974,12 @@ public class RecruitEvents {
         mob.setItemSlot(EquipmentSlot.FEET, getOrEmpty(extra,3));
         mob.setItemSlot(EquipmentSlot.OFFHAND, getOrEmpty(extra,4));
         mob.setItemSlot(EquipmentSlot.MAINHAND, getOrEmpty(extra,5));
+        if(tag.contains("MobData")){
+            CompoundTag data = tag.getCompound("MobData");
+            for(String key : ControlledMobMenu.EXTRA_KEYS){
+                if(data.contains(key)) tag.put(key, data.get(key).copy());
+            }
+        }
     }
 
     private static ItemStack getOrEmpty(ItemStack[] arr, int idx) {
@@ -988,6 +995,7 @@ public class RecruitEvents {
             if (!stack.isEmpty()) mob.spawnAtLocation(stack);
         }
         tag.remove("MobInventory");
+        tag.remove("MobData");
     }
   
 }
