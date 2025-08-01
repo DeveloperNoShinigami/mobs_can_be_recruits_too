@@ -423,7 +423,22 @@ public class RecruitEvents {
         if(event.getLevel().isClientSide()) return;
 
         Entity target = event.getTarget();
-        if(!(target instanceof Mob mob) || target instanceof AbstractRecruitEntity) return;
+        if(target instanceof Mob mob && !(target instanceof AbstractRecruitEntity)){
+            handleControlMobInteract(event, mob);
+        }
+    }
+
+    @SubscribeEvent
+    public void onControlMobInteractSpecific(PlayerInteractEvent.EntityInteractSpecific event){
+        if(event.getLevel().isClientSide()) return;
+
+        Entity target = event.getTarget();
+        if(target instanceof Mob mob && !(target instanceof AbstractRecruitEntity)){
+            handleControlMobInteract(event, mob);
+        }
+    }
+
+    private void handleControlMobInteract(PlayerInteractEvent event, Mob mob){
         CompoundTag nbt = mob.getPersistentData();
         if(nbt.getBoolean("RecruitControlled")) {
             restoreControlledMobInventory(mob);
@@ -446,6 +461,7 @@ public class RecruitEvents {
                     applyControlledMobGoals(pathfinderMob);
                 }
                 player.sendSystemMessage(Component.literal("Mob recruited"));
+                CommandEvents.openMobInventoryScreen(player, mob);
                 event.setCancellationResult(InteractionResult.SUCCESS);
                 event.setCanceled(true);
             }
