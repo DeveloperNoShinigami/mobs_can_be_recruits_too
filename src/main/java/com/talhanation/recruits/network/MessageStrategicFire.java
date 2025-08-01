@@ -5,6 +5,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Mob;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -33,18 +34,24 @@ public class MessageStrategicFire implements Message<MessageStrategicFire> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
-        serverPlayer.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                serverPlayer.getBoundingBox().inflate(100)
-        ).forEach((recruit) ->
-                CommandEvents.onStrategicFireCommand(
-                        serverPlayer,
-                        this.player,
-                        recruit,
-                        group,
-                        should
-                )
-        );
+        List<Mob> mobs = serverPlayer.getCommandSenderWorld().getEntitiesOfClass(Mob.class,
+                serverPlayer.getBoundingBox().inflate(100),
+                m -> {
+                    if (m instanceof AbstractRecruitEntity recruit) {
+                        return recruit.isEffectedByCommand(this.player, group);
+                    }
+                    return m.getPersistentData().getBoolean("RecruitControlled") &&
+                            m.getPersistentData().getBoolean("Owned") &&
+                            m.getPersistentData().getUUID("Owner").equals(this.player) &&
+                            (m.getPersistentData().getInt("Group") == this.group || this.group == 0);
+                });
+        for (Mob mob : mobs) {
+            if (mob instanceof AbstractRecruitEntity recruit) {
+                CommandEvents.onStrategicFireCommand(serverPlayer, this.player, recruit, group, should);
+            } else {
+                CommandEvents.onStrategicFireCommand(serverPlayer, this.player, mob, group, should);
+            }
+        }
     }
 
     public MessageStrategicFire fromBytes(FriendlyByteBuf buf) {
