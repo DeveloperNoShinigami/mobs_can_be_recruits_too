@@ -10,6 +10,7 @@ import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.inventory.PromoteContainer;
 import com.talhanation.recruits.inventory.PromoteMobContainer;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
+import com.talhanation.recruits.inventory.ControlledMobMenu;
 import com.talhanation.recruits.network.MessageOpenPromoteScreen;
 import com.talhanation.recruits.network.MessageOpenControlledMobPromoteScreen;
 import com.talhanation.recruits.world.PillagerPatrolSpawn;
