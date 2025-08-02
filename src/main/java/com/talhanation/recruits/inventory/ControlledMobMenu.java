@@ -51,8 +51,9 @@ public class ControlledMobMenu extends ContainerBase {
 
     private static SimpleContainer loadInventory(Mob mob, CompoundTag syncTag){
         SimpleContainer inv = new SimpleContainer(INV_SIZE);
-        CompoundTag tag = syncTag != null ? syncTag : mob.getPersistentData();
 
+        CompoundTag tag = syncTag != null ? syncTag : mob.getPersistentData();
+      
         if(tag.contains(NBT_KEY)){
             ListTag list = tag.getList(NBT_KEY, 10);
             for(int i=0;i<list.size();i++){

@@ -352,6 +352,7 @@ public class CommandEvents {
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new MessageControlledMobStats(nbt));
 
             CompoundTag inv = new CompoundTag();
+
             ListTag list = new ListTag();
 
             // include current equipment in the sync tag so the client always sees
