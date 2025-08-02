@@ -78,7 +78,7 @@ import java.util.function.Supplier;
 
 import com.talhanation.recruits.util.FormationMember;
 
-public abstract class AbstractRecruitEntity extends AbstractInventoryEntity implements FormationMember {
+public abstract class AbstractRecruitEntity extends AbstractInventoryEntity implements FormationMember, IRecruitEntity {
     private static final EntityDataAccessor<Integer> DATA_REMAINING_ANGER_TIME = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> STATE = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> FOLLOW_STATE = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
@@ -744,6 +744,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     public void setOwnerUUID(Optional<UUID> id) {
         this.entityData.set(OWNER_ID,id);
+    }
+
+    public void setOwnerUUID(@Nullable UUID uuid) {
+        setOwnerUUID(Optional.ofNullable(uuid));
     }
 
     public void setProtectUUID(Optional<UUID> id) {

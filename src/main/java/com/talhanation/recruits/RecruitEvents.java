@@ -4,6 +4,7 @@ import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
+import com.talhanation.recruits.entities.IRecruitEntity;
 import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
 import com.talhanation.recruits.init.ModEntityTypes;
@@ -122,10 +123,12 @@ public class RecruitEvents {
         AbstractRecruitEntity template = type.create(mob.getCommandSenderWorld());
         CompoundTag tag = mob.getPersistentData();
         tag.putInt("CompanionProfession", profession);
-        tag.putBoolean("Owned", true);
-        tag.putUUID("Owner", player.getUUID());
         tag.putString("OwnerName", player.getName().getString());
         tag.putString("CustomName", name);
+
+        IRecruitEntity recruit = IRecruitEntity.of(mob);
+        recruit.setIsOwned(true);
+        recruit.setOwnerUUID(player.getUUID());
 
         if (template instanceof ICompanion companion) {
             companion.applyRecruitValues(template);
@@ -502,12 +505,13 @@ public class RecruitEvents {
         Player player = event.getEntity();
         ItemStack currency = TeamEvents.getCurrencyForMob(mob.getType());
 
-        if(!nbt.getBoolean("Owned")){
+        IRecruitEntity recruit = IRecruitEntity.of(mob);
+        if(!recruit.isOwned()){
             int cost = nbt.getInt("HireCost");
             if(event.getItemStack().is(currency.getItem()) && event.getItemStack().getCount() >= cost){
                 event.getItemStack().shrink(cost);
-                nbt.putBoolean("Owned", true);
-                nbt.putUUID("Owner", player.getUUID());
+                recruit.setIsOwned(true);
+                recruit.setOwnerUUID(player.getUUID());
                 nbt.putInt("FollowState", 1);
                 resetControlledMobPaymentTimer(mob);
                 if (mob instanceof PathfinderMob pathfinderMob) {
@@ -519,7 +523,7 @@ public class RecruitEvents {
                 event.setCanceled(true);
             }
 
-        } else if(nbt.getBoolean("Owned") && nbt.contains("Owner") && nbt.getUUID("Owner").equals(player.getUUID())) {
+        } else if(recruit.isOwned() && recruit.isOwnedBy(player.getUUID())) {
 
             if(player.isCrouching()){
                 CommandEvents.openMobInventoryScreen(player, mob);
@@ -768,8 +772,8 @@ public class RecruitEvents {
                     || player.isSpectator())
                 return false;
         } else if (attacker instanceof Mob mob && mob.getPersistentData().getBoolean("RecruitControlled")) {
-            CompoundTag nbt = mob.getPersistentData();
-            if (nbt.getBoolean("Owned") && nbt.hasUUID("Owner") && player.getUUID().equals(nbt.getUUID("Owner")))
+            IRecruitEntity recruit = IRecruitEntity.of(mob);
+            if (recruit.isOwned() && recruit.isOwnedBy(player.getUUID()))
                 return false;
         }
         return canHarmTeam(attacker, player);
@@ -797,9 +801,9 @@ public class RecruitEvents {
 
             if(targetRecruit instanceof MessengerEntity messenger && messenger.isAtMission()) return false;
         } else if (attacker instanceof Mob mob && mob.getPersistentData().getBoolean("RecruitControlled")) {
-            CompoundTag attackerNBT = mob.getPersistentData();
-            if (attackerNBT.getBoolean("Owned") && attackerNBT.hasUUID("Owner") && targetRecruit.isOwned() &&
-                    attackerNBT.getUUID("Owner").equals(targetRecruit.getOwnerUUID())) {
+            IRecruitEntity attackerRecruit = IRecruitEntity.of(mob);
+            if (attackerRecruit.isOwned() && targetRecruit.isOwned() &&
+                    attackerRecruit.isOwnedBy(targetRecruit.getOwnerUUID())) {
                 return false;
             }
             if (mob.getTeam() != null && targetRecruit.getTeam() != null &&
@@ -818,8 +822,10 @@ public class RecruitEvents {
         }
 
         if (attacker instanceof AbstractRecruitEntity attackerRecruit) {
-            if (attackerRecruit.isOwned() && nbt.getBoolean("Owned") && nbt.hasUUID("Owner") &&
-                attackerRecruit.getOwnerUUID().equals(nbt.getUUID("Owner"))) {
+            IRecruitEntity targetRecruit = IRecruitEntity.of(mob);
+            if (attackerRecruit.isOwned() && targetRecruit.isOwned() &&
+                attackerRecruit.getOwnerUUID() != null &&
+                attackerRecruit.getOwnerUUID().equals(targetRecruit.getOwnerUUID())) {
                 return false;
             }
             if (attackerRecruit.getTeam() != null && mob.getTeam() != null &&
@@ -828,9 +834,11 @@ public class RecruitEvents {
                 return false;
             }
         } else if (attacker instanceof Mob attackerMob && attackerMob.getPersistentData().getBoolean("RecruitControlled")) {
-            CompoundTag attackerNBT = attackerMob.getPersistentData();
-            if (attackerNBT.getBoolean("Owned") && attackerNBT.hasUUID("Owner") && nbt.getBoolean("Owned") && nbt.hasUUID("Owner") &&
-                    attackerNBT.getUUID("Owner").equals(nbt.getUUID("Owner"))) {
+            IRecruitEntity attackerRecruit = IRecruitEntity.of(attackerMob);
+            IRecruitEntity targetRecruit = IRecruitEntity.of(mob);
+            if (attackerRecruit.isOwned() && targetRecruit.isOwned() &&
+                    attackerRecruit.getOwnerUUID() != null &&
+                    attackerRecruit.getOwnerUUID().equals(targetRecruit.getOwnerUUID())) {
                 return false;
             }
             if (attackerMob.getTeam() != null && mob.getTeam() != null &&
@@ -968,7 +976,7 @@ public class RecruitEvents {
         if(event.getEntity().level().isClientSide()) return;
         if(!(event.getEntity() instanceof Mob mob) || mob instanceof AbstractRecruitEntity) return;
         CompoundTag nbt = mob.getPersistentData();
-        if(!nbt.getBoolean("RecruitControlled") || !nbt.getBoolean("Owned")) return;
+        if(!nbt.getBoolean("RecruitControlled") || !IRecruitEntity.of(mob).isOwned()) return;
 
         if(RecruitsServerConfig.RecruitsPayment.get()){
             int timer = nbt.getInt("PaymentTimer");
@@ -989,11 +997,12 @@ public class RecruitEvents {
     private static void doControlledNoPaymentAction(Mob mob){
         AbstractRecruitEntity.NoPaymentAction action = RecruitsServerConfig.RecruitsNoPaymentAction.get();
         CompoundTag nbt = mob.getPersistentData();
+        IRecruitEntity recruit = IRecruitEntity.of(mob);
         switch (action){
-            case DISBAND_KEEP_TEAM -> nbt.putBoolean("Owned", false);
+            case DISBAND_KEEP_TEAM -> recruit.setIsOwned(false);
             case DISBAND -> {
-                nbt.putBoolean("Owned", false);
-                nbt.putInt("Group", 0);
+                recruit.setIsOwned(false);
+                recruit.setGroup(0);
             }
             case DESPAWN -> mob.discard();
             case MORALE_LOSS -> {}
@@ -1045,8 +1054,10 @@ public class RecruitEvents {
         CompoundTag nbt = mob.getPersistentData();
         nbt.putBoolean("RecruitControlled", true);
         if(!nbt.contains("HireCost")) nbt.putInt("HireCost", 1);
-        nbt.putBoolean("Owned", false);
-        nbt.putInt("Group", 0);
+        IRecruitEntity recruit = IRecruitEntity.of(mob);
+        recruit.setIsOwned(false);
+        recruit.setGroup(0);
+        recruit.setOwnerUUID(null);
         nbt.putInt("FollowState", 0);
         nbt.putInt("AggroState", 3); // passive by default so controlled mobs don't fight
         nbt.putInt("PaymentTimer", AbstractRecruitEntity.getPaymentIntervalTicks());

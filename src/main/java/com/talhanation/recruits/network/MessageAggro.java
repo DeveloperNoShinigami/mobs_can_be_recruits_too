@@ -2,6 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.IRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -56,10 +57,11 @@ public class MessageAggro implements Message<MessageAggro> {
                         return recruit.isEffectedByCommand(this.player, group);
                     }
                     if (fromGui) return false;
+                    IRecruitEntity recruit = IRecruitEntity.of(m);
                     return m.getPersistentData().getBoolean("RecruitControlled") &&
-                            m.getPersistentData().getBoolean("Owned") &&
-                            m.getPersistentData().getUUID("Owner").equals(this.player) &&
-                            (m.getPersistentData().getInt("Group") == this.group || this.group == 0);
+                            recruit.isOwned() &&
+                            recruit.isOwnedBy(this.player) &&
+                            (recruit.getGroup() == this.group || this.group == 0);
                 }).forEach(m -> {
             if (m instanceof AbstractRecruitEntity recruit) {
                 CommandEvents.onAggroCommand(this.player, recruit, this.state, group, fromGui);

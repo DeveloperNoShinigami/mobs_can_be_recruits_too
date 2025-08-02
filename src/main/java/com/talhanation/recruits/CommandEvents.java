@@ -419,7 +419,8 @@ public class CommandEvents {
                         if(m instanceof AbstractRecruitEntity recruit) {
                             return Arrays.stream(getActiveGroups(serverPlayer)).noneMatch(x -> recruit.isEffectedByCommand(serverPlayer.getUUID(), x));
                         }
-                        return !(m.getPersistentData().getBoolean("RecruitControlled") && m.getPersistentData().getBoolean("Owned") && m.getPersistentData().getUUID("Owner").equals(serverPlayer.getUUID()));
+                        IRecruitEntity recruit = IRecruitEntity.of(m);
+                        return !(m.getPersistentData().getBoolean("RecruitControlled") && recruit.isOwned() && recruit.isOwnedBy(serverPlayer.getUUID()));
                     });
                     List<FormationMember> members = new ArrayList<>();
                     for(Mob m : list) {
@@ -738,10 +739,12 @@ public class CommandEvents {
 
         List<Mob> mobs = player.getCommandSenderWorld().getEntitiesOfClass(Mob.class,
                 player.getBoundingBox().inflate(120),
-                m -> !(m instanceof AbstractRecruitEntity) &&
-                        m.getPersistentData().getBoolean("RecruitControlled") &&
-                        m.getPersistentData().getBoolean("Owned") &&
-                        m.getPersistentData().getUUID("Owner").equals(player.getUUID()));
+                m -> {
+                    if(m instanceof AbstractRecruitEntity) return false;
+                    if(!m.getPersistentData().getBoolean("RecruitControlled")) return false;
+                    IRecruitEntity recruit = IRecruitEntity.of(m);
+                    return recruit.isOwned() && recruit.isOwnedBy(player.getUUID());
+                });
 
         List<RecruitsGroup> allGroups = loadPlayersGroupsFromNBT(player);
 
@@ -881,10 +884,10 @@ public class CommandEvents {
 
     private static boolean isControlledMob(Mob mob, UUID player_uuid, int group) {
         CompoundTag nbt = mob.getPersistentData();
-        return nbt.getBoolean("RecruitControlled") &&
-                nbt.getBoolean("Owned") &&
-                nbt.getUUID("Owner").equals(player_uuid) &&
-                (group == 0 || nbt.getInt("Group") == group);
+        if(!nbt.getBoolean("RecruitControlled")) return false;
+        IRecruitEntity recruit = IRecruitEntity.of(mob);
+        return recruit.isOwned() && recruit.isOwnedBy(player_uuid) &&
+                (group == 0 || recruit.getGroup() == group);
     }
 
     private static void applyControlledMobMovement(Mob mob, int movementState, ServerPlayer player) {

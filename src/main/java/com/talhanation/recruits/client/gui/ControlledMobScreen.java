@@ -91,7 +91,7 @@ public class ControlledMobScreen extends ScreenBase<ControlledMobMenu> {
                     }
             );
             groupSelectionDropDownMenu.setBgFillSelected(FastColor.ARGB32.color(255, 139, 139, 139));
-            UUID owner = mob.getPersistentData().getUUID("Owner");
+            UUID owner = com.talhanation.recruits.entities.IRecruitEntity.of(mob).getOwnerUUID();
             groupSelectionDropDownMenu.visible = owner != null && owner.equals(Minecraft.getInstance().player.getUUID());
             addRenderableWidget(groupSelectionDropDownMenu);
             buttonsSet = true;
