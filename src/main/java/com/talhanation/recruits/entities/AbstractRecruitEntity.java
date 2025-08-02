@@ -6,6 +6,7 @@ import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.*;
+import com.talhanation.recruits.entities.IRecruitMob;
 import com.talhanation.recruits.entities.ai.async.AsyncManager;
 import com.talhanation.recruits.entities.ai.async.AsyncTaskWithCallback;
 import com.talhanation.recruits.entities.ai.compat.BlockWithWeapon;
@@ -78,7 +79,7 @@ import java.util.function.Supplier;
 
 import com.talhanation.recruits.util.FormationMember;
 
-public abstract class AbstractRecruitEntity extends AbstractInventoryEntity implements FormationMember, IRecruitEntity {
+public abstract class AbstractRecruitEntity extends AbstractInventoryEntity implements FormationMember, IRecruitMob {
     private static final EntityDataAccessor<Integer> DATA_REMAINING_ANGER_TIME = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> STATE = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> FOLLOW_STATE = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
@@ -575,6 +576,31 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     public float getMovementSpeed(){
         return (float) this.getAttributeValue(Attributes.MOVEMENT_SPEED);
+    }
+
+    @Override
+    public double getMoveSpeed() {
+        return this.moveSpeed;
+    }
+
+    @Override
+    public boolean getRotate() {
+        return this.rotate;
+    }
+
+    @Override
+    public void setRotate(boolean rotate) {
+        this.rotate = rotate;
+    }
+
+    @Override
+    public float getOwnerRot() {
+        return this.ownerRot;
+    }
+
+    @Override
+    public void setOwnerRot(float rot) {
+        this.ownerRot = rot;
     }
 
     public boolean getFleeing() {
@@ -1788,7 +1814,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
     }
 
     private boolean shouldAttackOnNeutral(LivingEntity target){
-        return isMonster(target) || isAttackingOwnerOrSelf(this, target) || RecruitEvents.isEnemy(this.getTeam(), target.getTeam());
+        return isMonster(target) || isAttackingAlly(this, target) || RecruitEvents.isEnemy(this.getTeam(), target.getTeam());
     }
 
     private boolean shouldAttackOnAggressive(LivingEntity target){
@@ -1799,9 +1825,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         return target instanceof Enemy;
     }
 
-    private boolean isAttackingOwnerOrSelf(AbstractRecruitEntity recruit, LivingEntity target) {
-        return target.getLastHurtByMob() != null &&
-                (target.getLastHurtByMob().equals(recruit) || target.getLastHurtByMob().equals(recruit.getOwner()));
+    private boolean isAttackingAlly(AbstractRecruitEntity recruit, LivingEntity target) {
+        LivingEntity last = target.getLastHurtByMob();
+        if (last == null) return false;
+
+        // target attacked this recruit or its owner
+        if (last.equals(recruit)) return true;
+        if (recruit.isOwned() && last.getUUID().equals(recruit.getOwnerUUID())) return true;
+
+        // attack if the target harmed any allied entity (same team or diplomacy ally)
+        return !RecruitEvents.canHarmTeam(recruit, last);
     }
 
     public boolean isAlliedTo(Entity target) {

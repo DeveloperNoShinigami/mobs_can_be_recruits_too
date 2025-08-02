@@ -107,58 +107,59 @@ public class CommandEvents {
         }
         else{
             for(Mob mob : recruits){
-                if(mob instanceof AbstractRecruitEntity recruit){
-                    int state = recruit.getFollowState();
+                IRecruitEntity recruit = IRecruitEntity.of(mob);
+                if(mob instanceof AbstractRecruitEntity recruitEntity){
+                    int state = recruitEntity.getFollowState();
 
                     switch (movementState) {
-                        case 0 -> { if (state != 0) recruit.setFollowState(0); }
-                        case 1 -> { if (state != 1) recruit.setFollowState(1); }
-                        case 2 -> { if (state != 2) recruit.setFollowState(2); }
-                        case 3 -> { if (state != 3) recruit.setFollowState(3); }
-                        case 4 -> { if (state != 4) recruit.setFollowState(4); }
-                        case 5 -> { if (state != 5) recruit.setFollowState(5); }
+                        case 0 -> { if (state != 0) recruitEntity.setFollowState(0); }
+                        case 1 -> { if (state != 1) recruitEntity.setFollowState(1); }
+                        case 2 -> { if (state != 2) recruitEntity.setFollowState(2); }
+                        case 3 -> { if (state != 3) recruitEntity.setFollowState(3); }
+                        case 4 -> { if (state != 4) recruitEntity.setFollowState(4); }
+                        case 5 -> { if (state != 5) recruitEntity.setFollowState(5); }
                         case 6 -> {
                             HitResult hitResult = player.pick(100, 1F, true);
                             if (hitResult.getType() == HitResult.Type.BLOCK) {
                                 BlockHitResult blockHitResult = (BlockHitResult) hitResult;
                                 BlockPos blockpos = blockHitResult.getBlockPos();
-                                recruit.setMovePos(blockpos);
-                                recruit.setFollowState(0);
-                                recruit.setShouldMovePos(true);
+                                recruitEntity.setMovePos(blockpos);
+                                recruitEntity.setFollowState(0);
+                                recruitEntity.setShouldMovePos(true);
                             }
                         }
                         case 7 -> {
                             Vec3 forward = player.getForward();
-                            Vec3 pos = recruit.position().add(forward.scale(getForwardScale(recruit)));
+                            Vec3 pos = recruitEntity.position().add(forward.scale(getForwardScale(recruitEntity)));
                             BlockPos blockPos = FormationUtils.getPositionOrSurface(
                                     player.getCommandSenderWorld(),
                                     new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
                             );
                             Vec3 tPos = new Vec3(pos.x, blockPos.getY(), pos.z);
-                            recruit.setHoldPos(tPos);
-                            recruit.ownerRot = player.getYRot();
-                            recruit.setFollowState(3);
+                            recruitEntity.setHoldPos(tPos);
+                            recruitEntity.ownerRot = player.getYRot();
+                            recruitEntity.setFollowState(3);
                         }
                         case 8 -> {
                             Vec3 forward = player.getForward();
-                            Vec3 pos = recruit.position().add(forward.scale(-getForwardScale(recruit)));
+                            Vec3 pos = recruitEntity.position().add(forward.scale(-getForwardScale(recruitEntity)));
                             BlockPos blockPos = FormationUtils.getPositionOrSurface(
                                     player.getCommandSenderWorld(),
                                     new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
                             );
                             Vec3 tPos = new Vec3(pos.x, blockPos.getY(), pos.z);
-                            recruit.setHoldPos(tPos);
-                            recruit.ownerRot = player.getYRot();
-                            recruit.setFollowState(3);
+                            recruitEntity.setHoldPos(tPos);
+                            recruitEntity.ownerRot = player.getYRot();
+                            recruitEntity.setFollowState(3);
                         }
                     }
-                    recruit.isInFormation = false;
-                    recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
-                    if (recruit.getShouldMount()) recruit.setShouldMount(false);
+                    recruitEntity.isInFormation = false;
+                    recruitEntity.setUpkeepTimer(recruitEntity.getUpkeepCooldown());
+                    if (recruitEntity.getShouldMount()) recruitEntity.setShouldMount(false);
                     checkPatrolLeaderState(recruit);
-                    recruit.forcedUpkeep = false;
+                    recruitEntity.forcedUpkeep = false;
                 } else {
-                    applyControlledMobMovement(mob, movementState, player);
+                    applyControlledMobMovement(recruit, movementState, player);
                 }
             }
 
@@ -171,7 +172,7 @@ public class CommandEvents {
         }
         return 10;
     }
-    private static double getForwardScale(AbstractRecruitEntity recruit) {
+    private static double getForwardScale(IRecruitEntity recruit) {
         return (recruit instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()) ? 25 : 10;
     }
     public static void applyFormation(int formation, List<? extends FormationMember> recruits, ServerPlayer player, Vec3 targetPos) {
@@ -203,44 +204,43 @@ public class CommandEvents {
         }
     }
 
-    public static void onMovementCommandGUI(AbstractRecruitEntity recruit, int movementState) {
-        int state = recruit.getFollowState();
+    public static void onMovementCommandGUI(IRecruitEntity recruit, int movementState) {
+        if(recruit instanceof AbstractRecruitEntity ar) {
+            int state = ar.getFollowState();
 
-        switch (movementState) {
-            case 0 -> {
-                if (state != 0)
-                    recruit.setFollowState(0);
+            switch (movementState) {
+                case 0 -> { if (state != 0) ar.setFollowState(0); }
+                case 1 -> { if (state != 1) ar.setFollowState(1); }
+                case 2 -> { if (state != 2) ar.setFollowState(2); }
+                case 3 -> { if (state != 3) ar.setFollowState(3); }
+                case 4 -> { if (state != 4) ar.setFollowState(4); }
+                case 5 -> { if (state != 5) ar.setFollowState(5); }
             }
-            case 1 -> {
-                if (state != 1)
-                    recruit.setFollowState(1);
-            }
-            case 2 -> {
-                if (state != 2)
-                    recruit.setFollowState(2);
-            }
-            case 3 -> {
-                if (state != 3)
-                    recruit.setFollowState(3);
-            }
-            case 4 -> {
-                if (state != 4)
-                    recruit.setFollowState(4);
-            }
-            case 5 -> {
-                if (state != 5)
-                    recruit.setFollowState(5);
+
+            ar.setUpkeepTimer(ar.getUpkeepCooldown());
+            if (ar.getShouldMount()) ar.setShouldMount(false);
+            checkPatrolLeaderState(ar);
+            ar.forcedUpkeep = false;
+        } else if(recruit instanceof MobRecruit mr) {
+            Mob mob = mr.getMob();
+            CompoundTag nbt = mob.getPersistentData();
+            switch (movementState) {
+                case 0 -> nbt.putInt("FollowState", 0);
+                case 1 -> nbt.putInt("FollowState", 1);
+                case 2 -> {
+                    nbt.putInt("FollowState", 2);
+                    nbt.putDouble("HoldX", mob.getX());
+                    nbt.putDouble("HoldY", mob.getY());
+                    nbt.putDouble("HoldZ", mob.getZ());
+                }
+                case 3 -> nbt.putInt("FollowState", 3);
+                case 4 -> nbt.putInt("FollowState", 4);
+                case 5 -> nbt.putInt("FollowState", 5);
             }
         }
-
-        recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
-        if (recruit.getShouldMount()) recruit.setShouldMount(false);
-        //if (recruit instanceof CaptainEntity captain) captain.attackController. = false;
-        checkPatrolLeaderState(recruit);
-        recruit.forcedUpkeep = false;
     }
 
-    public static void checkPatrolLeaderState(AbstractRecruitEntity recruit) {
+    public static void checkPatrolLeaderState(IRecruitEntity recruit) {
         if(recruit instanceof AbstractLeaderEntity leader) {
             AbstractLeaderEntity.State patrolState = AbstractLeaderEntity.State.fromIndex(leader.getPatrollingState());
             if(patrolState == AbstractLeaderEntity.State.PATROLLING || patrolState == AbstractLeaderEntity.State.WAITING) {
@@ -253,29 +253,29 @@ public class CommandEvents {
         }
     }
 
-    public static void onAggroCommand(UUID player_uuid, AbstractRecruitEntity recruit, int x_state, int group, boolean fromGui) {
-        if (recruit.isEffectedByCommand(player_uuid, group)){
-            int state = recruit.getState();
+    public static void onAggroCommand(UUID player_uuid, IRecruitEntity recruit, int x_state, int group, boolean fromGui) {
+        if (recruit instanceof AbstractRecruitEntity ar && ar.isEffectedByCommand(player_uuid, group)){
+            int state = ar.getState();
             switch (x_state) {
 
                 case 0:
                     if (state != 0)
-                        recruit.setState(0);
+                        ar.setState(0);
                     break;
 
                 case 1:
                     if (state != 1)
-                        recruit.setState(1);
+                        ar.setState(1);
                     break;
 
                 case 2:
                     if (state != 2)
-                        recruit.setState(2);
+                        ar.setState(2);
                     break;
 
                 case 3:
                     if (state != 3)
-                        recruit.setState(3);
+                        ar.setState(3);
                     break;
             }
         }
@@ -287,10 +287,10 @@ public class CommandEvents {
         }
     }
 
-    public static void onStrategicFireCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
-        if (recruit.isEffectedByCommand(player_uuid, group)){
+    public static void onStrategicFireCommand(Player player, UUID player_uuid, IRecruitEntity recruit, int group, boolean should) {
+        if (recruit instanceof AbstractRecruitEntity ar && ar.isEffectedByCommand(player_uuid, group)){
 
-            if (recruit instanceof IStrategicFire bowman){
+            if (ar instanceof IStrategicFire bowman){
                 HitResult hitResult = player.pick(100, 1F, false);
                 bowman.setShouldStrategicFire(should);
                 if (hitResult != null) {
@@ -416,8 +416,8 @@ public class CommandEvents {
                                     serverPlayer.getBoundingBox().inflate(200)
                             );
                     list.removeIf(m -> {
-                        if(m instanceof AbstractRecruitEntity recruit) {
-                            return Arrays.stream(getActiveGroups(serverPlayer)).noneMatch(x -> recruit.isEffectedByCommand(serverPlayer.getUUID(), x));
+                        if(m instanceof AbstractRecruitEntity recruitEntity) {
+                            return Arrays.stream(getActiveGroups(serverPlayer)).noneMatch(x -> recruitEntity.isEffectedByCommand(serverPlayer.getUUID(), x));
                         }
                         IRecruitEntity recruit = IRecruitEntity.of(m);
                         return !(m.getPersistentData().getBoolean("RecruitControlled") && recruit.isOwned() && recruit.isOwnedBy(serverPlayer.getUUID()));
@@ -491,9 +491,10 @@ public class CommandEvents {
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 
-    public static void handleRecruiting(Player player, AbstractRecruitEntity recruit){
-        String name = recruit.getName().getString() + ": ";
-        int sollPrice = recruit.getCost();
+    public static void handleRecruiting(Player player, IRecruitEntity recruit){
+        if(!(recruit instanceof AbstractRecruitEntity ar)) return;
+        String name = ar.getName().getString() + ": ";
+        int sollPrice = ar.getCost();
         Inventory playerInv = player.getInventory();
         int playerEmeralds = 0;
 
@@ -516,7 +517,7 @@ public class CommandEvents {
         boolean playerCanPay = playerEmeralds >= sollPrice;
 
         if (playerCanPay || player.isCreative()){
-            if(recruit.hire(player)) {
+            if(ar.hire(player)) {
                 //give player tradeGood
                 //remove playerEmeralds ->add left
                 //
@@ -554,11 +555,11 @@ public class CommandEvents {
             player.sendSystemMessage(TEXT_HIRE_COSTS(name, sollPrice, currency));
     }
 
-    public static void onMountButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID mount_uuid, int group) {
-        if (recruit.isEffectedByCommand(player_uuid, group)){
-            if(mount_uuid != null) recruit.shouldMount(true, mount_uuid);
-            else if(recruit.getMountUUID() != null) recruit.shouldMount(true, recruit.getMountUUID());
-            recruit.dismount = 0;
+    public static void onMountButton(UUID player_uuid, IRecruitEntity recruit, UUID mount_uuid, int group) {
+        if (recruit instanceof AbstractRecruitEntity ar && ar.isEffectedByCommand(player_uuid, group)){
+            if(mount_uuid != null) ar.shouldMount(true, mount_uuid);
+            else if(ar.getMountUUID() != null) ar.shouldMount(true, ar.getMountUUID());
+            ar.dismount = 0;
         }
     }
 
@@ -572,12 +573,12 @@ public class CommandEvents {
         }
     }
 
-    public static void onDismountButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
-        if (recruit.isEffectedByCommand(player_uuid, group)){
-            recruit.shouldMount(false, null);
-            if(recruit.isPassenger()){
-                recruit.stopRiding();
-                recruit.dismount = 180;
+    public static void onDismountButton(UUID player_uuid, IRecruitEntity recruit, int group) {
+        if (recruit instanceof AbstractRecruitEntity ar && ar.isEffectedByCommand(player_uuid, group)){
+            ar.shouldMount(false, null);
+            if(ar.isPassenger()){
+                ar.stopRiding();
+                ar.dismount = 180;
             }
         }
     }
@@ -592,9 +593,9 @@ public class CommandEvents {
         }
     }
 
-    public static void onProtectButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID protect_uuid, int group) {
-        if (recruit.isEffectedByCommand(player_uuid, group)){
-            recruit.shouldProtect(true, protect_uuid);
+    public static void onProtectButton(UUID player_uuid, IRecruitEntity recruit, UUID protect_uuid, int group) {
+        if (recruit instanceof AbstractRecruitEntity ar && ar.isEffectedByCommand(player_uuid, group)){
+            ar.shouldProtect(true, protect_uuid);
         }
     }
 
@@ -610,13 +611,12 @@ public class CommandEvents {
         }
     }
 
-    public static void onClearTargetButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
-        if (recruit.isEffectedByCommand(player_uuid, group)){
-            //Main.LOGGER.debug("event: clear");
-            recruit.setTarget(null);
-            recruit.setLastHurtByPlayer(null);
-            recruit.setLastHurtMob(null);
-            recruit.setLastHurtByMob(null);
+    public static void onClearTargetButton(UUID player_uuid, IRecruitEntity recruit, int group) {
+        if (recruit instanceof AbstractRecruitEntity ar && ar.isEffectedByCommand(player_uuid, group)){
+            ar.setTarget(null);
+            ar.setLastHurtByPlayer(null);
+            ar.setLastHurtMob(null);
+            ar.setLastHurtByMob(null);
         }
     }
 
@@ -626,11 +626,10 @@ public class CommandEvents {
         }
     }
 
-    public static void onClearUpkeepButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
-        if (recruit.isEffectedByCommand(player_uuid, group)){
-            //Main.LOGGER.debug("event: clear");
-            recruit.clearUpkeepEntity();
-            recruit.clearUpkeepPos();
+    public static void onClearUpkeepButton(UUID player_uuid, IRecruitEntity recruit, int group) {
+        if (recruit instanceof AbstractRecruitEntity ar && ar.isEffectedByCommand(player_uuid, group)){
+            ar.clearUpkeepEntity();
+            ar.clearUpkeepPos();
         }
     }
 
@@ -643,20 +642,19 @@ public class CommandEvents {
             nbt.remove("UpkeepPosZ");
         }
     }
-    public static void onUpkeepCommand(UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean isEntity, UUID entity_uuid, BlockPos blockPos) {
-        if (recruit.isEffectedByCommand(player_uuid, group)){
+    public static void onUpkeepCommand(UUID player_uuid, IRecruitEntity recruit, int group, boolean isEntity, UUID entity_uuid, BlockPos blockPos) {
+        if (recruit instanceof AbstractRecruitEntity ar && ar.isEffectedByCommand(player_uuid, group)){
             if (isEntity) {
-                //Main.LOGGER.debug("server: entity_uuid: " + entity_uuid);
-                recruit.setUpkeepUUID(Optional.of(entity_uuid));
-                recruit.clearUpkeepPos();
+                ar.setUpkeepUUID(Optional.of(entity_uuid));
+                ar.clearUpkeepPos();
             }
             else {
-                recruit.setUpkeepPos(blockPos);
-                recruit.clearUpkeepEntity();
+                ar.setUpkeepPos(blockPos);
+                ar.clearUpkeepEntity();
             }
-            recruit.forcedUpkeep = true;
-            recruit.setUpkeepTimer(0);
-            onClearTargetButton(player_uuid, recruit, group);
+            ar.forcedUpkeep = true;
+            ar.setUpkeepTimer(0);
+            onClearTargetButton(player_uuid, (IRecruitEntity) ar, group);
         }
     }
 
@@ -677,9 +675,9 @@ public class CommandEvents {
         }
     }
 
-    public static void onShieldsCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean shields) {
-        if (recruit.isEffectedByCommand(player_uuid, group)){
-            recruit.setShouldBlock(shields);
+    public static void onShieldsCommand(ServerPlayer serverPlayer, UUID player_uuid, IRecruitEntity recruit, int group, boolean shields) {
+        if (recruit instanceof AbstractRecruitEntity ar && ar.isEffectedByCommand(player_uuid, group)){
+            ar.setShouldBlock(shields);
         }
     }
 
@@ -689,9 +687,9 @@ public class CommandEvents {
         }
     }
 
-    public static void onRangedFireCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
-        if (recruit.isEffectedByCommand(player_uuid, group)){
-            recruit.setShouldRanged(should);
+    public static void onRangedFireCommand(ServerPlayer serverPlayer, UUID player_uuid, IRecruitEntity recruit, int group, boolean should) {
+        if (recruit instanceof AbstractRecruitEntity ar && ar.isEffectedByCommand(player_uuid, group)){
+            ar.setShouldRanged(should);
         }
     }
 
@@ -701,9 +699,9 @@ public class CommandEvents {
         }
     }
 
-    public static void onRestCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
-        if (recruit.isEffectedByCommand(player_uuid, group)){
-            recruit.setShouldRest(should);
+    public static void onRestCommand(ServerPlayer serverPlayer, UUID player_uuid, IRecruitEntity recruit, int group, boolean should) {
+        if (recruit instanceof AbstractRecruitEntity ar && ar.isEffectedByCommand(player_uuid, group)){
+            ar.setShouldRest(should);
         }
     }
 
@@ -734,29 +732,22 @@ public class CommandEvents {
     }
 
     public static List<RecruitsGroup> getAvailableGroups(ServerPlayer player) {
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(120)));
-        list.removeIf(recruit -> !recruit.isEffectedByCommand(player.getUUID(), 0));
-
-        List<Mob> mobs = player.getCommandSenderWorld().getEntitiesOfClass(Mob.class,
-                player.getBoundingBox().inflate(120),
-                m -> {
-                    if(m instanceof AbstractRecruitEntity) return false;
-                    if(!m.getPersistentData().getBoolean("RecruitControlled")) return false;
-                    IRecruitEntity recruit = IRecruitEntity.of(m);
-                    return recruit.isOwned() && recruit.isOwnedBy(player.getUUID());
-                });
+        List<Mob> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(Mob.class, player.getBoundingBox().inflate(120)));
+        list.removeIf(m -> {
+            if(m instanceof AbstractRecruitEntity recruitEntity) {
+                return !recruitEntity.isEffectedByCommand(player.getUUID(), 0);
+            }
+            if(!m.getPersistentData().getBoolean("RecruitControlled")) return true;
+            IRecruitEntity recruit = IRecruitEntity.of(m);
+            return !(recruit.isOwned() && recruit.isOwnedBy(player.getUUID()));
+        });
 
         List<RecruitsGroup> allGroups = loadPlayersGroupsFromNBT(player);
 
         Map<Integer, Integer> groupCounts = new HashMap<>();
 
-        for (AbstractRecruitEntity recruit : list) {
-            int groupId = recruit.getGroup();
-            groupCounts.put(groupId, groupCounts.getOrDefault(groupId, 0) + 1);
-        }
-
-        for (Mob mob : mobs) {
-            int groupId = mob.getPersistentData().getInt("Group");
+        for (Mob mob : list) {
+            int groupId = mob instanceof AbstractRecruitEntity recruitEntity ? recruitEntity.getGroup() : mob.getPersistentData().getInt("Group");
             groupCounts.put(groupId, groupCounts.getOrDefault(groupId, 0) + 1);
         }
 
@@ -890,7 +881,8 @@ public class CommandEvents {
                 (group == 0 || recruit.getGroup() == group);
     }
 
-    private static void applyControlledMobMovement(Mob mob, int movementState, ServerPlayer player) {
+    private static void applyControlledMobMovement(IRecruitEntity recruit, int movementState, ServerPlayer player) {
+        Mob mob = recruit instanceof MobRecruit mr ? mr.getMob() : (Mob) recruit;
         CompoundTag nbt = mob.getPersistentData();
         if (nbt.getBoolean("ShouldRest")) {
             return;

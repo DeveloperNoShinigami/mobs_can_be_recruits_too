@@ -49,7 +49,7 @@ public class MessageRest implements Message<MessageRest> {
                 });
         for (Mob m : mobs) {
             if (m instanceof AbstractRecruitEntity recruit) {
-                CommandEvents.onRestCommand(serverPlayer, this.player, recruit, group, should);
+                CommandEvents.onRestCommand(serverPlayer, this.player, (IRecruitEntity) recruit, group, should);
             } else {
                 CommandEvents.onRestCommand(serverPlayer, this.player, m, group, should);
             }

@@ -44,7 +44,7 @@ public class MessageClearUpkeep implements Message<MessageClearUpkeep> {
                 });
         for (Mob mob : mobs) {
             if (mob instanceof AbstractRecruitEntity recruit) {
-                CommandEvents.onClearUpkeepButton(uuid, recruit, group);
+                CommandEvents.onClearUpkeepButton(uuid, (IRecruitEntity) recruit, group);
             } else {
                 CommandEvents.onClearUpkeepButton(uuid, mob, group);
             }
