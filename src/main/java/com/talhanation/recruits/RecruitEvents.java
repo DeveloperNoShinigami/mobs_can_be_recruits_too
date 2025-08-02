@@ -521,7 +521,26 @@ public class RecruitEvents {
 
         } else if(nbt.getBoolean("Owned") && nbt.contains("Owner") && nbt.getUUID("Owner").equals(player.getUUID())) {
 
-            CommandEvents.openMobInventoryScreen(player, mob);
+            if(player.isCrouching()){
+                CommandEvents.openMobInventoryScreen(player, mob);
+            } else {
+                String name = mob.getName().getString();
+                int state = nbt.getInt("FollowState");
+                switch (state) {
+                    default -> {
+                        nbt.putInt("FollowState", 1);
+                        player.sendSystemMessage(Component.translatable("chat.recruits.text.follow", name));
+                    }
+                    case 1 -> {
+                        nbt.putInt("FollowState", 4);
+                        player.sendSystemMessage(Component.translatable("chat.recruits.text.holdPos", name));
+                    }
+                    case 3 -> {
+                        nbt.putInt("FollowState", 0);
+                        player.sendSystemMessage(Component.translatable("chat.recruits.text.wander", name));
+                    }
+                }
+            }
             event.setCancellationResult(InteractionResult.SUCCESS);
             event.setCanceled(true);
         }
@@ -794,6 +813,10 @@ public class RecruitEvents {
 
     private static boolean canAttackControlledMob(LivingEntity attacker, Mob mob) {
         CompoundTag nbt = mob.getPersistentData();
+        if (attacker.getType() == mob.getType()) {
+            return false;
+        }
+
         if (attacker instanceof AbstractRecruitEntity attackerRecruit) {
             if (attackerRecruit.isOwned() && nbt.getBoolean("Owned") && nbt.hasUUID("Owner") &&
                 attackerRecruit.getOwnerUUID().equals(nbt.getUUID("Owner"))) {
