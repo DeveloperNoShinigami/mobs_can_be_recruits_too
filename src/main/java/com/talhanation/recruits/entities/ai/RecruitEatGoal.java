@@ -1,6 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.IRecruitMob;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
@@ -8,13 +8,13 @@ import java.util.Objects;
 
 public class RecruitEatGoal extends Goal {
 
-    public AbstractRecruitEntity recruit;
+    public IRecruitMob recruit;
     public ItemStack foodStack;
     public int slotID;
     private long lastCanUseCheckMorale;
     private long lastCanUseCheckHunger;
 
-    public RecruitEatGoal(AbstractRecruitEntity recruit) {
+    public RecruitEatGoal(IRecruitMob recruit) {
         this.recruit = recruit;
     }
 
@@ -71,10 +71,10 @@ public class RecruitEatGoal extends Goal {
         Main.LOGGER.debug("Start--------------:");
         */
 
-        recruit.heal(Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getSaturationModifier() * 1);
+        recruit.heal(Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit.getMob())).getSaturationModifier() * 1);
         if (!recruit.isSaturated()){
-            float saturation = Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getSaturationModifier();
-            float nutrition = Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getNutrition() * 5;
+            float saturation = Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit.getMob())).getSaturationModifier();
+            float nutrition = Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit.getMob())).getNutrition() * 5;
 
             float currentHunger = recruit.getHunger();
             float newHunger = currentHunger + saturation + nutrition;
@@ -105,11 +105,11 @@ public class RecruitEatGoal extends Goal {
     private ItemStack getAndRemoveFoodInInv(){
         ItemStack itemStack = null;
         for(int i = 0; i < recruit.getInventorySize(); i++){
-            ItemStack stackInSlot = recruit.inventory.getItem(i).copy();
+            ItemStack stackInSlot = recruit.getInventory().getItem(i).copy();
             if(recruit.canEatItemStack(stackInSlot)){
                 itemStack = stackInSlot.copy();
                 this.slotID = i;
-                recruit.inventory.removeItemNoUpdate(i); //removing item in slot
+                recruit.getInventory().removeItemNoUpdate(i); //removing item in slot
                 break;
             }
         }
