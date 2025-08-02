@@ -171,8 +171,15 @@ public class MobRecruit implements IRecruitMob {
         setInt(KEY_MOUNT_TIMER, timer);
     }
 
+    /**
+     * Access the vanilla inventory of the wrapped mob when it implements
+     * {@link InventoryCarrier}. This is separate from the recruit-specific
+     * {@link #getInventory()} container used by the wrapper.
+     *
+     * @return the mob's own inventory or {@code null} if it has none
+     */
     @Nullable
-    public Container getInventory() {
+    public Container getCarrierInventory() {
         return mob instanceof InventoryCarrier carrier ? carrier.getInventory() : null;
     }
 
