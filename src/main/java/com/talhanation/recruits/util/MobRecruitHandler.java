@@ -21,14 +21,17 @@ public class MobRecruitHandler implements RecruitHandler {
     @Override
     public void handle(PlayerInteractEvent event, Mob mob) {
         CompoundTag nbt = mob.getPersistentData();
+        Player player = event.getEntity();
         if (nbt.getBoolean("RecruitControlled")) {
             RecruitEventsAccessor.restoreControlledMobInventory(mob);
         } else if (TeamEvents.isControlledMob(mob.getType())) {
             RecruitEventsAccessor.initializeControlledMob(mob);
+        } else {
+            player.sendSystemMessage(Component.literal(
+                    "This mob cannot be recruited. Add its id to ControlledMobIds or enable UniversalMobControl."));
         }
         if (!nbt.getBoolean("RecruitControlled")) return;
 
-        Player player = event.getEntity();
         ItemStack currency = TeamEvents.getCurrencyForMob(mob.getType());
 
         if (!nbt.getBoolean("Owned")) {

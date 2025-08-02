@@ -6,7 +6,10 @@ which food items recruits are willing to eat.
 
 ### Controlled mobs
 
-Right-click an owned controlled mob to open its inventory and command screen.
+Only mobs flagged with `RecruitControlled` will obey recruit commands. This can
+be enabled globally via the `UniversalMobControl` config or for specific mobs by
+adding their ids to `ControlledMobIds`. Right-click an owned controlled mob to
+open its inventory and command screen.
 
 https://www.curseforge.com/minecraft/mc-mods/recruits
 
