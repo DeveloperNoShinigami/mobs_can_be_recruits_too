@@ -1,6 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.client.gui.ControlledMobScreen;
+import com.talhanation.recruits.client.gui.MobRecruitScreen;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -25,10 +25,10 @@ public class MessageControlledMobStats implements Message<MessageControlledMobSt
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
         if (nbt == null) return;
-        ControlledMobScreen.level = nbt.getInt("Level");
-        ControlledMobScreen.xp = nbt.getInt("Xp");
-        ControlledMobScreen.morale = nbt.getFloat("Moral");
-        ControlledMobScreen.hunger = nbt.getFloat("Hunger");
+        MobRecruitScreen.level = nbt.getInt("Level");
+        MobRecruitScreen.xp = nbt.getInt("Xp");
+        MobRecruitScreen.morale = nbt.getFloat("Moral");
+        MobRecruitScreen.hunger = nbt.getFloat("Hunger");
     }
 
     @Override

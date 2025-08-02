@@ -1,7 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.client.gui.RecruitInventoryScreen;
+import com.talhanation.recruits.client.gui.AbstractRecruitScreen;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -26,7 +26,7 @@ public class MessageToClientUpdateRecruitInventoryScreen implements Message<Mess
 
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
-        RecruitInventoryScreen.groups = CommandEvents.getRecruitsGroupListFormNBT(this.nbt);
+        AbstractRecruitScreen.groups = CommandEvents.getRecruitsGroupListFormNBT(this.nbt);
     }
 
     @Override
