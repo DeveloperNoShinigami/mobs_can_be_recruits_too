@@ -66,7 +66,8 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
         this.imageWidth = 197;
         this.imageHeight = 250;
         this.player = container.getPlayerEntity();
-        if (container instanceof PromoteMobContainer mobContainer) {
+        Object obj = container;
+        if (obj instanceof PromoteMobContainer mobContainer) {
             this.mob = mobContainer.getMob();
             this.recruit = null;
         } else {
