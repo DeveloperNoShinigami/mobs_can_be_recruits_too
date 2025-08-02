@@ -352,8 +352,30 @@ public class CommandEvents {
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new MessageControlledMobStats(nbt));
 
             CompoundTag inv = new CompoundTag();
-            if (data.contains("MobInventory")) inv.put("MobInventory", data.getList("MobInventory", 10));
-            if (data.contains("MobData")) inv.put("MobData", data.getCompound("MobData"));
+
+            ListTag list = new ListTag();
+
+            // include current equipment in the sync tag so the client always sees
+            // the correct items even if the entity state hasn't fully propagated
+            for (int i = 0; i < ControlledMobMenu.SLOT_IDS.length; i++) {
+                ItemStack stack = mob.getItemBySlot(ControlledMobMenu.SLOT_IDS[i]);
+                if (!stack.isEmpty()) {
+                    CompoundTag ct = new CompoundTag();
+                    ct.putByte("Slot", (byte) i);
+                    stack.save(ct);
+                    list.add(ct);
+                }
+            }
+
+            if (data.contains("MobInventory")) {
+                list.addAll(data.getList("MobInventory", 10));
+            }
+
+            inv.put("MobInventory", list);
+
+            if (data.contains("MobData")) {
+                inv.put("MobData", data.getCompound("MobData"));
+            }
 
             NetworkHooks.openScreen(serverPlayer, new MenuProvider() {
                 @Override

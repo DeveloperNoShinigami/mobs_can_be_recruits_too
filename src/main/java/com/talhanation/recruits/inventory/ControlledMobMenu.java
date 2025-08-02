@@ -51,14 +51,9 @@ public class ControlledMobMenu extends ContainerBase {
 
     private static SimpleContainer loadInventory(Mob mob, CompoundTag syncTag){
         SimpleContainer inv = new SimpleContainer(INV_SIZE);
-        inv.setItem(0, mob.getItemBySlot(EquipmentSlot.HEAD));
-        inv.setItem(1, mob.getItemBySlot(EquipmentSlot.CHEST));
-        inv.setItem(2, mob.getItemBySlot(EquipmentSlot.LEGS));
-        inv.setItem(3, mob.getItemBySlot(EquipmentSlot.FEET));
-        inv.setItem(4, mob.getItemBySlot(EquipmentSlot.OFFHAND));
-        inv.setItem(5, mob.getItemBySlot(EquipmentSlot.MAINHAND));
 
         CompoundTag tag = syncTag != null ? syncTag : mob.getPersistentData();
+      
         if(tag.contains(NBT_KEY)){
             ListTag list = tag.getList(NBT_KEY, 10);
             for(int i=0;i<list.size();i++){
@@ -68,7 +63,16 @@ public class ControlledMobMenu extends ContainerBase {
                     inv.setItem(slot, ItemStack.of(ct));
                 }
             }
+        }else{
+            // fall back to the entity's current equipment when no sync tag is available
+            inv.setItem(0, mob.getItemBySlot(EquipmentSlot.HEAD));
+            inv.setItem(1, mob.getItemBySlot(EquipmentSlot.CHEST));
+            inv.setItem(2, mob.getItemBySlot(EquipmentSlot.LEGS));
+            inv.setItem(3, mob.getItemBySlot(EquipmentSlot.FEET));
+            inv.setItem(4, mob.getItemBySlot(EquipmentSlot.OFFHAND));
+            inv.setItem(5, mob.getItemBySlot(EquipmentSlot.MAINHAND));
         }
+
         if(tag.contains(DATA_KEY)){
             CompoundTag data = tag.getCompound(DATA_KEY);
             for(String key : EXTRA_KEYS){
