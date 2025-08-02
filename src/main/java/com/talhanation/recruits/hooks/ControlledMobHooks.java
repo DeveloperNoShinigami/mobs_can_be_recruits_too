@@ -1,6 +1,7 @@
 package com.talhanation.recruits.hooks;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.IRecruitEntity;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
@@ -55,7 +56,7 @@ public class ControlledMobHooks {
     private void updateMorale(Mob mob, CompoundTag tag) {
         float morale = tag.contains("Moral") ? tag.getFloat("Moral") : 50F;
         float hunger = tag.getFloat("Hunger");
-        boolean owned = tag.getBoolean("Owned");
+        boolean owned = IRecruitEntity.of(mob).isOwned();
 
         if (hunger <= 1F && owned && morale > 0F) {
             morale -= 2F;
