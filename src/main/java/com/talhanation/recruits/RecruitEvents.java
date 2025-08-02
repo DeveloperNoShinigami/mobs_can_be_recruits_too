@@ -777,6 +777,16 @@ public class RecruitEvents {
             }
 
             if(targetRecruit instanceof MessengerEntity messenger && messenger.isAtMission()) return false;
+        } else if (attacker instanceof Mob mob && mob.getPersistentData().getBoolean("RecruitControlled")) {
+            CompoundTag attackerNBT = mob.getPersistentData();
+            if (attackerNBT.getBoolean("Owned") && attackerNBT.hasUUID("Owner") && targetRecruit.isOwned() &&
+                    attackerNBT.getUUID("Owner").equals(targetRecruit.getOwnerUUID())) {
+                return false;
+            }
+            if (mob.getTeam() != null && targetRecruit.getTeam() != null &&
+                    mob.getTeam().equals(targetRecruit.getTeam()) && !mob.getTeam().isAllowFriendlyFire()) {
+                return false;
+            }
         }
 
         return canHarmTeam(attacker, targetRecruit);
@@ -792,6 +802,16 @@ public class RecruitEvents {
             if (attackerRecruit.getTeam() != null && mob.getTeam() != null &&
                 attackerRecruit.getTeam().equals(mob.getTeam()) &&
                 !attackerRecruit.getTeam().isAllowFriendlyFire()) {
+                return false;
+            }
+        } else if (attacker instanceof Mob attackerMob && attackerMob.getPersistentData().getBoolean("RecruitControlled")) {
+            CompoundTag attackerNBT = attackerMob.getPersistentData();
+            if (attackerNBT.getBoolean("Owned") && attackerNBT.hasUUID("Owner") && nbt.getBoolean("Owned") && nbt.hasUUID("Owner") &&
+                    attackerNBT.getUUID("Owner").equals(nbt.getUUID("Owner"))) {
+                return false;
+            }
+            if (attackerMob.getTeam() != null && mob.getTeam() != null &&
+                    attackerMob.getTeam().equals(mob.getTeam()) && !attackerMob.getTeam().isAllowFriendlyFire()) {
                 return false;
             }
         }
