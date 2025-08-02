@@ -1,14 +1,11 @@
 package com.talhanation.recruits.entities;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.Container;
-import net.minecraft.world.entity.npc.InventoryCarrier;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.npc.InventoryCarrier;
+
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -19,6 +16,15 @@ import java.util.UUID;
  * regular mobs the same as {@link AbstractRecruitEntity} instances.
  */
 public class MobRecruit implements IRecruitMob {
+
+    private static final String KEY_OWNED = "Owned";
+    private static final String KEY_OWNER = "Owner";
+    private static final String KEY_GROUP = "Group";
+    private static final String KEY_FOLLOW_STATE = "FollowState";
+    private static final String KEY_SHOULD_FOLLOW = "ShouldFollow";
+    private static final String KEY_PAYMENT_TIMER = "paymentTimer";
+    private static final String KEY_UPKEEP_TIMER = "upkeepTimer";
+    private static final String KEY_MOUNT_TIMER = "mountTimer";
 
     private static final String KEY_OWNED = "Owned";
     private static final String KEY_OWNER = "Owner";
@@ -95,7 +101,7 @@ public class MobRecruit implements IRecruitMob {
     }
 
     // basic recruit data ----------------------------------------------------
-
+  
     @Override
     public boolean isOwned() {
         return getBoolean(KEY_OWNED);
@@ -129,6 +135,51 @@ public class MobRecruit implements IRecruitMob {
     @Override
     public void setGroup(int group) {
         setInt(KEY_GROUP, group);
+    }
+
+    public int getFollowState() {
+        return getInt(KEY_FOLLOW_STATE);
+    }
+
+    public void setFollowState(int state) {
+        setInt(KEY_FOLLOW_STATE, state);
+    }
+
+    public boolean getShouldFollow() {
+        return getBoolean(KEY_SHOULD_FOLLOW);
+    }
+
+    public void setShouldFollow(boolean shouldFollow) {
+        setBoolean(KEY_SHOULD_FOLLOW, shouldFollow);
+    }
+
+    public int getPaymentTimer() {
+        return getInt(KEY_PAYMENT_TIMER);
+    }
+
+    public void setPaymentTimer(int timer) {
+        setInt(KEY_PAYMENT_TIMER, timer);
+    }
+
+    public int getUpkeepTimer() {
+        return getInt(KEY_UPKEEP_TIMER);
+    }
+
+    public void setUpkeepTimer(int timer) {
+        setInt(KEY_UPKEEP_TIMER, timer);
+    }
+
+    public int getMountTimer() {
+        return getInt(KEY_MOUNT_TIMER);
+    }
+
+    public void setMountTimer(int timer) {
+        setInt(KEY_MOUNT_TIMER, timer);
+    }
+
+    @Nullable
+    public Container getInventory() {
+        return mob instanceof InventoryCarrier carrier ? carrier.getInventory() : null;
     }
 
     public int getFollowState() {
