@@ -49,7 +49,7 @@ public class MessageStrategicFire implements Message<MessageStrategicFire> {
                 });
         for (Mob mob : mobs) {
             if (mob instanceof AbstractRecruitEntity recruit) {
-                CommandEvents.onStrategicFireCommand(serverPlayer, this.player, recruit, group, should);
+                CommandEvents.onStrategicFireCommand(serverPlayer, this.player, (IRecruitEntity) recruit, group, should);
             } else {
                 CommandEvents.onStrategicFireCommand(serverPlayer, this.player, mob, group, should);
             }

@@ -49,7 +49,7 @@ public class MessageUpkeepPos implements Message<MessageUpkeepPos> {
                 }
         ).forEach(m -> {
             if (m instanceof AbstractRecruitEntity recruit) {
-                CommandEvents.onUpkeepCommand(this.player, recruit, group, false, null, pos);
+                CommandEvents.onUpkeepCommand(this.player, (IRecruitEntity) recruit, group, false, null, pos);
             } else {
                 CommandEvents.onUpkeepCommand(this.player, m, group, false, null, pos);
             }
