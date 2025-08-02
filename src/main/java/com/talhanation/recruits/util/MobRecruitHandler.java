@@ -13,7 +13,9 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 /**
  * Default implementation of {@link RecruitHandler} that reuses the
- * existing recruit GUI and behaviour for arbitrary mobs.
+ * existing recruit GUI and behaviour for arbitrary mobs. It also mirrors
+ * recruit right-click state cycling so converted mobs can follow, hold, and
+ * wander just like standard recruits.
  */
 public class MobRecruitHandler implements RecruitHandler {
     @Override
@@ -52,16 +54,24 @@ public class MobRecruitHandler implements RecruitHandler {
                 String name = mob.getName().getString();
                 int state = nbt.getInt("FollowState");
                 switch (state) {
+                    // default includes 0,2,4,5,... -> switch to follow
                     default -> {
                         nbt.putInt("FollowState", 1);
+                        clearHoldPos(nbt);
                         player.sendSystemMessage(Component.translatable("chat.recruits.text.follow", name));
                     }
+                    // follow -> hold at player position
                     case 1 -> {
-                        nbt.putInt("FollowState", 4);
+                        nbt.putInt("FollowState", 3);
+                        nbt.putDouble("HoldX", player.getX());
+                        nbt.putDouble("HoldY", player.getY());
+                        nbt.putDouble("HoldZ", player.getZ());
                         player.sendSystemMessage(Component.translatable("chat.recruits.text.holdPos", name));
                     }
+                    // hold -> wander
                     case 3 -> {
                         nbt.putInt("FollowState", 0);
+                        clearHoldPos(nbt);
                         player.sendSystemMessage(Component.translatable("chat.recruits.text.wander", name));
                     }
                 }
@@ -69,6 +79,12 @@ public class MobRecruitHandler implements RecruitHandler {
             event.setCancellationResult(InteractionResult.SUCCESS);
             event.setCanceled(true);
         }
+    }
+
+    private static void clearHoldPos(CompoundTag nbt) {
+        nbt.remove("HoldX");
+        nbt.remove("HoldY");
+        nbt.remove("HoldZ");
     }
 
     /**
