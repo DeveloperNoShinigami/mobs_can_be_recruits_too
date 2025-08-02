@@ -56,6 +56,8 @@ import com.talhanation.recruits.entities.ai.compat.ControlledMobTargetGoal;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobMeleeAttackGoal;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobRangedBowAttackGoal;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobRestGoal;
+import com.talhanation.recruits.util.MobRecruitHandler;
+import com.talhanation.recruits.util.RecruitHandler;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
@@ -98,6 +100,8 @@ public class RecruitEvents {
             put(3, ModEntityTypes.CAPTAIN.get());
         }
     };
+
+    private final RecruitHandler mobRecruitHandler = new MobRecruitHandler();
 
     public static void promoteRecruit(AbstractRecruitEntity recruit, int profession, String name, ServerPlayer player) {
         EntityType<? extends AbstractRecruitEntity> companionType = entitiesByProfession.get(profession);
@@ -476,7 +480,7 @@ public class RecruitEvents {
 
         Entity target = event.getTarget();
         if(target instanceof Mob mob && !(target instanceof AbstractRecruitEntity)){
-            handleControlMobInteract(event, mob);
+            mobRecruitHandler.handle(event, mob);
         }
     }
 
@@ -486,63 +490,7 @@ public class RecruitEvents {
 
         Entity target = event.getTarget();
         if(target instanceof Mob mob && !(target instanceof AbstractRecruitEntity)){
-            handleControlMobInteract(event, mob);
-        }
-    }
-
-    private void handleControlMobInteract(PlayerInteractEvent event, Mob mob){
-        CompoundTag nbt = mob.getPersistentData();
-        if(nbt.getBoolean("RecruitControlled")) {
-            restoreControlledMobInventory(mob);
-        } else if(TeamEvents.isControlledMob(mob.getType())) {
-            initializeControlledMob(mob);
-        }
-        if(!nbt.getBoolean("RecruitControlled")) return;
-
-        Player player = event.getEntity();
-        ItemStack currency = TeamEvents.getCurrencyForMob(mob.getType());
-
-        if(!nbt.getBoolean("Owned")){
-            int cost = nbt.getInt("HireCost");
-            if(event.getItemStack().is(currency.getItem()) && event.getItemStack().getCount() >= cost){
-                event.getItemStack().shrink(cost);
-                nbt.putBoolean("Owned", true);
-                nbt.putUUID("Owner", player.getUUID());
-                nbt.putInt("FollowState", 1);
-                resetControlledMobPaymentTimer(mob);
-                if (mob instanceof PathfinderMob pathfinderMob) {
-                    applyControlledMobGoals(pathfinderMob);
-                }
-                player.sendSystemMessage(Component.literal("Mob recruited"));
-                CommandEvents.openMobInventoryScreen(player, mob);
-                event.setCancellationResult(InteractionResult.SUCCESS);
-                event.setCanceled(true);
-            }
-
-        } else if(nbt.getBoolean("Owned") && nbt.contains("Owner") && nbt.getUUID("Owner").equals(player.getUUID())) {
-
-            if(player.isCrouching()){
-                CommandEvents.openMobInventoryScreen(player, mob);
-            } else {
-                String name = mob.getName().getString();
-                int state = nbt.getInt("FollowState");
-                switch (state) {
-                    default -> {
-                        nbt.putInt("FollowState", 1);
-                        player.sendSystemMessage(Component.translatable("chat.recruits.text.follow", name));
-                    }
-                    case 1 -> {
-                        nbt.putInt("FollowState", 4);
-                        player.sendSystemMessage(Component.translatable("chat.recruits.text.holdPos", name));
-                    }
-                    case 3 -> {
-                        nbt.putInt("FollowState", 0);
-                        player.sendSystemMessage(Component.translatable("chat.recruits.text.wander", name));
-                    }
-                }
-            }
-            event.setCancellationResult(InteractionResult.SUCCESS);
-            event.setCanceled(true);
+            mobRecruitHandler.handle(event, mob);
         }
     }
 
@@ -982,11 +930,11 @@ public class RecruitEvents {
         }
     }
 
-    private static void resetControlledMobPaymentTimer(Mob mob){
+    public static void resetControlledMobPaymentTimer(Mob mob){
         mob.getPersistentData().putInt("PaymentTimer", AbstractRecruitEntity.getPaymentIntervalTicks());
     }
 
-    private static void doControlledNoPaymentAction(Mob mob){
+    public static void doControlledNoPaymentAction(Mob mob){
         AbstractRecruitEntity.NoPaymentAction action = RecruitsServerConfig.RecruitsNoPaymentAction.get();
         CompoundTag nbt = mob.getPersistentData();
         switch (action){
@@ -1060,7 +1008,7 @@ public class RecruitEvents {
         restoreControlledMobInventory(mob);
     }
 
-    private static void applyControlledMobGoals(PathfinderMob pathfinderMob) {
+    public static void applyControlledMobGoals(PathfinderMob pathfinderMob) {
         if (RecruitsServerConfig.ReplaceMobAI.get()) {
             try {
                 java.lang.reflect.Field f = pathfinderMob.goalSelector.getClass().getDeclaredField("availableGoals");
@@ -1102,7 +1050,7 @@ public class RecruitEvents {
         }
     }
   
-    private static void restoreControlledMobInventory(Mob mob) {
+    public static void restoreControlledMobInventory(Mob mob) {
         CompoundTag tag = mob.getPersistentData();
         if (!tag.contains("MobInventory")) return;
         ListTag list = tag.getList("MobInventory", 10);
@@ -1132,7 +1080,7 @@ public class RecruitEvents {
         return idx >= 0 && idx < arr.length && arr[idx] != null ? arr[idx] : ItemStack.EMPTY;
     }
 
-    private static void dropControlledMobInventory(Mob mob) {
+    public static void dropControlledMobInventory(Mob mob) {
         CompoundTag tag = mob.getPersistentData();
         if (!tag.contains("MobInventory")) return;
         ListTag list = tag.getList("MobInventory", 10);
@@ -1184,7 +1132,7 @@ public class RecruitEvents {
         tag.put("MobInventory", list);
     }
 
-    private static void applyCompanionProfession(Mob mob) {
+    public static void applyCompanionProfession(Mob mob) {
         CompoundTag tag = mob.getPersistentData();
         if (!tag.contains("CompanionProfession")) return;
         int profession = tag.getInt("CompanionProfession");

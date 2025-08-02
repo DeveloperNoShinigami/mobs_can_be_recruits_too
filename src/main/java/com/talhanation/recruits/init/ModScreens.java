@@ -34,7 +34,7 @@ public class ModScreens {
 
     public static void registerMenus() {
         registerMenu(RECRUIT_CONTAINER_TYPE.get(), RecruitInventoryScreen::new);
-        registerMenu(CONTROLLED_MOB_CONTAINER_TYPE.get(), ControlledMobScreen::new);
+        registerMenu(CONTROLLED_MOB_CONTAINER_TYPE.get(), MobRecruitScreen::new);
         registerMenu(DEBUG_CONTAINER_TYPE.get(), DebugInvScreen::new);
         registerMenu(COMMAND_CONTAINER_TYPE.get(), CommandScreen::new);
         registerMenu(ASSASSIN_CONTAINER_TYPE.get(), AssassinLeaderScreen::new);
