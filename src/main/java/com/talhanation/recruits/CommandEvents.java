@@ -350,6 +350,32 @@ public class CommandEvents {
             if (data.contains("Moral")) nbt.putFloat("Moral", data.getFloat("Moral"));
             if (data.contains("Hunger")) nbt.putFloat("Hunger", data.getFloat("Hunger"));
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new MessageControlledMobStats(nbt));
+
+            CompoundTag inv = new CompoundTag();
+            ListTag list = new ListTag();
+
+            // include current equipment in the sync tag so the client always sees
+            // the correct items even if the entity state hasn't fully propagated
+            for (int i = 0; i < ControlledMobMenu.SLOT_IDS.length; i++) {
+                ItemStack stack = mob.getItemBySlot(ControlledMobMenu.SLOT_IDS[i]);
+                if (!stack.isEmpty()) {
+                    CompoundTag ct = new CompoundTag();
+                    ct.putByte("Slot", (byte) i);
+                    stack.save(ct);
+                    list.add(ct);
+                }
+            }
+
+            if (data.contains("MobInventory")) {
+                list.addAll(data.getList("MobInventory", 10));
+            }
+
+            inv.put("MobInventory", list);
+
+            if (data.contains("MobData")) {
+                inv.put("MobData", data.getCompound("MobData"));
+            }
+
             NetworkHooks.openScreen(serverPlayer, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
@@ -358,9 +384,12 @@ public class CommandEvents {
 
                 @Override
                 public @NotNull AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player p) {
-                    return new ControlledMobMenu(i, mob, playerInventory);
+                    return new ControlledMobMenu(i, mob, playerInventory, inv);
                 }
-            }, buf -> buf.writeUUID(mob.getUUID()));
+            }, buf -> {
+                buf.writeUUID(mob.getUUID());
+                buf.writeNbt(inv);
+            });
         }
     }
     @SubscribeEvent

@@ -4,6 +4,10 @@ Recruit and command villagers, manage armies through custom GUIs, enjoy PvP and 
 Server configs now allow disabling recruit hunger or defining exactly
 which food items recruits are willing to eat.
 
+### Controlled mobs
+
+Right-click an owned controlled mob to open its inventory and command screen.
+
 https://www.curseforge.com/minecraft/mc-mods/recruits
 
 All Rights Reserved unless otherwise explicitly stated.
