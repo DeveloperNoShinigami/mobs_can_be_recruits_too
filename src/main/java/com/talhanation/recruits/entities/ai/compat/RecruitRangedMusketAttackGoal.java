@@ -1,6 +1,12 @@
 package com.talhanation.recruits.entities.ai.compat;
 
-import com.talhanation.recruits.compat.*;
+import com.talhanation.recruits.compat.BlunderbussWeapon;
+import com.talhanation.recruits.compat.CGMWeapon;
+import com.talhanation.recruits.compat.IWeapon;
+import com.talhanation.recruits.compat.MusketBayonetWeapon;
+import com.talhanation.recruits.compat.MusketScopeWeapon;
+import com.talhanation.recruits.compat.MusketWeapon;
+import com.talhanation.recruits.compat.PistolWeapon;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
 import com.talhanation.recruits.util.AttackUtil;
 import net.minecraft.core.BlockPos;
