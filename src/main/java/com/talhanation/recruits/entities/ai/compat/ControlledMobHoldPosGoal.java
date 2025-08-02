@@ -25,7 +25,8 @@ public class ControlledMobHoldPosGoal extends Goal {
     public boolean canUse() {
         CompoundTag nbt = mob.getPersistentData();
         if (!nbt.getBoolean("Owned")) return false;
-        if (nbt.getInt("FollowState") != 2) return false;
+        int state = nbt.getInt("FollowState");
+        if (state != 2 && state != 3) return false;
         if (!nbt.contains("HoldX")) {
             nbt.putDouble("HoldX", mob.getX());
             nbt.putDouble("HoldY", mob.getY());
