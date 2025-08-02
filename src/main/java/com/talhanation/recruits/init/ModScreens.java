@@ -14,6 +14,7 @@ import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.registries.DeferredRegister;
@@ -70,11 +71,12 @@ public class ModScreens {
         MENU_TYPES.register("controlled_mob_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
             try {
                 UUID mobId = data.readUUID();
+                CompoundTag tag = data.readNbt();
                 Mob mob = getControlledMobByUUID(inv.player, mobId);
                 if (mob == null) {
                     return null;
                 }
-                return new ControlledMobMenu(windowId, mob, inv);
+                return new ControlledMobMenu(windowId, mob, inv, tag);
             } catch (Exception e) {
                 logger.error("Error in controlled_mob_container: ");
                 logger.error(e.getMessage());
