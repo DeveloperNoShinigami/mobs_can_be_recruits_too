@@ -50,32 +50,36 @@ public class MobRecruitHandler implements RecruitHandler {
         } else if (nbt.getBoolean("Owned") && nbt.contains("Owner") && nbt.getUUID("Owner").equals(player.getUUID())) {
             if (player.isCrouching()) {
                 CommandEvents.openMobInventoryScreen(player, mob);
-            } else {
-                String name = mob.getName().getString();
-                int state = nbt.getInt("FollowState");
-                switch (state) {
-                    // default includes 0,2,4,5,... -> switch to follow
-                    default -> {
-                        nbt.putInt("FollowState", 1);
-                        clearHoldPos(nbt);
-                        player.sendSystemMessage(Component.translatable("chat.recruits.text.follow", name));
-                    }
-                    // follow -> hold at player position
-                    case 1 -> {
-                        nbt.putInt("FollowState", 3);
-                        nbt.putDouble("HoldX", player.getX());
-                        nbt.putDouble("HoldY", player.getY());
-                        nbt.putDouble("HoldZ", player.getZ());
-                        player.sendSystemMessage(Component.translatable("chat.recruits.text.holdPos", name));
-                    }
-                    // hold -> wander
-                    case 3 -> {
-                        nbt.putInt("FollowState", 0);
-                        clearHoldPos(nbt);
-                        player.sendSystemMessage(Component.translatable("chat.recruits.text.wander", name));
-                    }
+                event.setCancellationResult(InteractionResult.SUCCESS);
+                event.setCanceled(true);
+                return;
+            }
+
+            String name = mob.getName().getString();
+            int state = nbt.getInt("FollowState");
+            switch (state) {
+                // default includes 0,2,3,5,... -> switch to follow
+                default -> {
+                    nbt.putInt("FollowState", 1);
+                    clearHoldPos(nbt);
+                    player.sendSystemMessage(Component.translatable("chat.recruits.text.follow", name));
+                }
+                // follow -> hold at player position
+                case 1 -> {
+                    nbt.putInt("FollowState", 4);
+                    nbt.putDouble("HoldX", player.getX());
+                    nbt.putDouble("HoldY", player.getY());
+                    nbt.putDouble("HoldZ", player.getZ());
+                    player.sendSystemMessage(Component.translatable("chat.recruits.text.holdPos", name));
+                }
+                // hold -> wander
+                case 4 -> {
+                    nbt.putInt("FollowState", 0);
+                    clearHoldPos(nbt);
+                    player.sendSystemMessage(Component.translatable("chat.recruits.text.wander", name));
                 }
             }
+
             event.setCancellationResult(InteractionResult.SUCCESS);
             event.setCanceled(true);
         }
