@@ -50,7 +50,7 @@ public class MessageUpkeepEntity implements Message<MessageUpkeepEntity> {
                 });
         for (Mob mob : mobs) {
             if (mob instanceof AbstractRecruitEntity recruit) {
-                CommandEvents.onUpkeepCommand(player_uuid, recruit, group, true, target, null);
+                CommandEvents.onUpkeepCommand(player_uuid, (IRecruitEntity) recruit, group, true, target, null);
             } else {
                 CommandEvents.onUpkeepCommand(player_uuid, mob, group, true, target, null);
             }
