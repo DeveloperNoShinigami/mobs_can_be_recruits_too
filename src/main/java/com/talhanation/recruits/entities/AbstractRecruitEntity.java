@@ -1788,7 +1788,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
     }
 
     private boolean shouldAttackOnNeutral(LivingEntity target){
-        return isMonster(target) || isAttackingOwnerOrSelf(this, target) || RecruitEvents.isEnemy(this.getTeam(), target.getTeam());
+        return isMonster(target) || isAttackingAlly(this, target) || RecruitEvents.isEnemy(this.getTeam(), target.getTeam());
     }
 
     private boolean shouldAttackOnAggressive(LivingEntity target){
@@ -1799,9 +1799,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         return target instanceof Enemy;
     }
 
-    private boolean isAttackingOwnerOrSelf(AbstractRecruitEntity recruit, LivingEntity target) {
-        return target.getLastHurtByMob() != null &&
-                (target.getLastHurtByMob().equals(recruit) || target.getLastHurtByMob().equals(recruit.getOwner()));
+    private boolean isAttackingAlly(AbstractRecruitEntity recruit, LivingEntity target) {
+        LivingEntity last = target.getLastHurtByMob();
+        if (last == null) return false;
+
+        // target attacked this recruit or its owner
+        if (last.equals(recruit)) return true;
+        if (recruit.isOwned() && last.getUUID().equals(recruit.getOwnerUUID())) return true;
+
+        // attack if the target harmed any allied entity (same team or diplomacy ally)
+        return !RecruitEvents.canHarmTeam(recruit, last);
     }
 
     public boolean isAlliedTo(Entity target) {
