@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai.compat;
 
+import com.talhanation.recruits.entities.IRecruitEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.player.Player;
@@ -28,16 +29,16 @@ public class ControlledMobFollowOwnerGoal extends Goal {
     }
 
     private Player getOwner() {
-        CompoundTag nbt = mob.getPersistentData();
-        if (!nbt.contains("Owner")) return null;
-        UUID id = nbt.getUUID("Owner");
-        return ((ServerLevel) mob.level()).getPlayerByUUID(id);
+        IRecruitEntity recruit = IRecruitEntity.of(mob);
+        UUID id = recruit.getOwnerUUID();
+        return id == null ? null : ((ServerLevel) mob.level()).getPlayerByUUID(id);
     }
 
     @Override
     public boolean canUse() {
         CompoundTag nbt = mob.getPersistentData();
-        if (!nbt.getBoolean("Owned")) return false;
+        IRecruitEntity recruit = IRecruitEntity.of(mob);
+        if (!recruit.isOwned()) return false;
         if (nbt.getInt("FollowState") != 1) return false;
         owner = getOwner();
         return owner != null && mob.distanceTo(owner) > startDistance;

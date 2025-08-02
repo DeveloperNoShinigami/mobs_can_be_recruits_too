@@ -2,6 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.IRecruitEntity;
 import com.talhanation.recruits.util.FormationMember;
 import com.talhanation.recruits.util.MobFormationAdapter;
 import de.maxhenkel.corelib.net.Message;
@@ -42,10 +43,11 @@ public class MessageFormationFollowMovement implements Message<MessageFormationF
                     if (m instanceof AbstractRecruitEntity recruit) {
                         return recruit.isEffectedByCommand(this.player_uuid, this.group);
                     }
+                    IRecruitEntity recruit = IRecruitEntity.of(m);
                     return m.getPersistentData().getBoolean("RecruitControlled") &&
-                            m.getPersistentData().getBoolean("Owned") &&
-                            m.getPersistentData().getUUID("Owner").equals(this.player_uuid) &&
-                            (m.getPersistentData().getInt("Group") == this.group || this.group == 0);
+                            recruit.isOwned() &&
+                            recruit.isOwnedBy(this.player_uuid) &&
+                            (recruit.getGroup() == this.group || this.group == 0);
                 });
 
         List<FormationMember> members = new ArrayList<>();

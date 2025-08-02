@@ -2,6 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.IRecruitEntity;
 import net.minecraft.world.entity.Mob;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -40,10 +41,11 @@ public class MessageMovement implements Message<MessageMovement> {
                     if (m instanceof AbstractRecruitEntity recruit) {
                         return recruit.isEffectedByCommand(this.player_uuid, this.group);
                     }
+                    IRecruitEntity recruit = IRecruitEntity.of(m);
                     return m.getPersistentData().getBoolean("RecruitControlled") &&
-                            m.getPersistentData().getBoolean("Owned") &&
-                            m.getPersistentData().getUUID("Owner").equals(this.player_uuid) &&
-                            (m.getPersistentData().getInt("Group") == this.group || this.group == 0);
+                            recruit.isOwned() &&
+                            recruit.isOwnedBy(this.player_uuid) &&
+                            (recruit.getGroup() == this.group || this.group == 0);
                 });
 
         CommandEvents.onMovementCommand(context.getSender(), mobs, this.state, this.formation);

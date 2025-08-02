@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai.compat;
 
+import com.talhanation.recruits.entities.IRecruitEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -20,7 +21,8 @@ public class ControlledMobRestGoal extends Goal {
     @Override
     public boolean canUse() {
         CompoundTag nbt = mob.getPersistentData();
-        if (!nbt.getBoolean("RecruitControlled") || !nbt.getBoolean("Owned"))
+        IRecruitEntity recruit = IRecruitEntity.of(mob);
+        if (!nbt.getBoolean("RecruitControlled") || !recruit.isOwned())
             return false;
         if (!nbt.getBoolean("ShouldRest"))
             return false;

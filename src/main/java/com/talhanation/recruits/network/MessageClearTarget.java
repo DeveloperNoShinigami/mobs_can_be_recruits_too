@@ -2,6 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.IRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -38,10 +39,11 @@ public class MessageClearTarget implements Message<MessageClearTarget> {
                     if (m instanceof AbstractRecruitEntity recruit) {
                         return recruit.isEffectedByCommand(uuid, group);
                     }
+                    IRecruitEntity recruit = IRecruitEntity.of(m);
                     return m.getPersistentData().getBoolean("RecruitControlled") &&
-                            m.getPersistentData().getBoolean("Owned") &&
-                            m.getPersistentData().getUUID("Owner").equals(uuid) &&
-                            (m.getPersistentData().getInt("Group") == this.group || this.group == 0);
+                            recruit.isOwned() &&
+                            recruit.isOwnedBy(uuid) &&
+                            (recruit.getGroup() == this.group || this.group == 0);
                 });
         for (Mob m : mobs) {
             if (m instanceof AbstractRecruitEntity recruit) {

@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai.compat;
 
+import com.talhanation.recruits.entities.IRecruitEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.PathfinderMob;
@@ -24,7 +25,8 @@ public class ControlledMobHoldPosGoal extends Goal {
     @Override
     public boolean canUse() {
         CompoundTag nbt = mob.getPersistentData();
-        if (!nbt.getBoolean("Owned")) return false;
+        IRecruitEntity recruit = IRecruitEntity.of(mob);
+        if (!recruit.isOwned()) return false;
         int state = nbt.getInt("FollowState");
         if (state != 2 && state != 3) return false;
         if (!nbt.contains("HoldX")) {
