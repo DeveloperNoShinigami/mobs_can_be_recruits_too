@@ -2,6 +2,7 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.IRecruitEntity;
 import com.talhanation.recruits.inventory.*;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
@@ -19,6 +20,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -184,7 +186,7 @@ public class TeamEvents {
             recruitsTeamManager.addTeam(teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT(), colorByte, newTeam.getColor());
             addPlayerToData(level, teamName, 1, playerName);
 
-            List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
+            List<Mob> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
             int recruitCount = recruits.size();
             addNPCToData(level, teamName, recruitCount);
 
@@ -443,7 +445,7 @@ public class TeamEvents {
                 potentialRemovePlayer.sendSystemMessage(PLAYER_REMOVED);
                 if(menu)serverPlayer.sendSystemMessage(REMOVE_PLAYER_LEADER(potentialRemovePlayer.getDisplayName().getString()));
 
-                List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
+                List<Mob> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
                 int recruitCount = recruits.size();
 
                 addNPCToData(level, team.getName(), -recruitCount);
@@ -723,23 +725,27 @@ public class TeamEvents {
 
     ////////////////////////////////////Recruit TEAM JOIN AND REMOVE////////////////////////////
 
-    private static List<AbstractRecruitEntity> getRecruitsOfPlayer(UUID player_uuid, ServerLevel level) {
-        List<AbstractRecruitEntity> list = new ArrayList<>();
+    private static List<Mob> getRecruitsOfPlayer(UUID player_uuid, ServerLevel level) {
+        List<Mob> list = new ArrayList<>();
 
-        for(Entity entity : level.getEntities().getAll()){
-            if(entity instanceof AbstractRecruitEntity recruit && recruit.getOwner() != null && recruit.getOwnerUUID().equals(player_uuid))
-                list.add(recruit);
+        for (Entity entity : level.getEntities().getAll()) {
+            if (entity instanceof Mob mob) {
+                IRecruitEntity recruit = IRecruitEntity.of(mob);
+                if (recruit.isOwnedBy(player_uuid)) {
+                    list.add(mob);
+                }
+            }
         }
         return list;
     }
 
-    public static void addRecruitToTeam(List<AbstractRecruitEntity> recruits, Team team, ServerLevel level){
-        for(AbstractRecruitEntity recruit : recruits){
+    public static void addRecruitToTeam(List<Mob> recruits, Team team, ServerLevel level) {
+        for (Mob recruit : recruits) {
             addRecruitToTeam(recruit, team, level);
         }
     }
 
-    public static void addRecruitToTeam(AbstractRecruitEntity recruit, Team team, ServerLevel level){
+    public static void addRecruitToTeam(Mob recruit, Team team, ServerLevel level) {
         String teamName = team.getName();
         PlayerTeam playerteam = level.getScoreboard().getPlayerTeam(teamName);
         RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByStringID(teamName);
@@ -747,30 +753,35 @@ public class TeamEvents {
         boolean flag = playerteam != null && level.getScoreboard().addPlayerToTeam(recruit.getStringUUID(), playerteam);
         if (!flag) {
             Main.LOGGER.warn("Unable to add mob to team \"{}\" (that team probably doesn't exist)", teamName);
-        } else{
-            recruit.setTarget(null);// fix "if owner was other team and now same team und was target"
-            if(recruitsTeam != null) recruit.setColor(recruitsTeam.getUnitColor());
+        } else {
+            if (recruit instanceof AbstractRecruitEntity recruitEntity) {
+                recruitEntity.setTarget(null);// fix "if owner was other team and now same team und was target"
+                if (recruitsTeam != null) recruitEntity.setColor(recruitsTeam.getUnitColor());
+            }
         }
     }
 
-    public static void removeRecruitFromTeam(String teamName, ServerPlayer player, ServerLevel level){
-        List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(player.getUUID(), level);
+    public static void removeRecruitFromTeam(String teamName, ServerPlayer player, ServerLevel level) {
+        List<Mob> recruits = getRecruitsOfPlayer(player.getUUID(), level);
         Team team = level.getScoreboard().getPlayerTeam(teamName);
-        if(team  != null){
+        if (team != null) {
             removeRecruitFromTeam(recruits, team, level);
         }
     }
-    public static void removeRecruitFromTeam(List<AbstractRecruitEntity> recruits, Team team, ServerLevel level){
-        for(AbstractRecruitEntity recruit : recruits){
+
+    public static void removeRecruitFromTeam(List<Mob> recruits, Team team, ServerLevel level) {
+        for (Mob recruit : recruits) {
             removeRecruitFromTeam(recruit, team, level);
         }
     }
-    public static void removeRecruitFromTeam(AbstractRecruitEntity recruit, Team team, ServerLevel level){
+
+    public static void removeRecruitFromTeam(Mob recruit, Team team, ServerLevel level) {
         Team recruitsTeam = recruit.getTeam();
 
-        if(recruitsTeam != null && recruitsTeam.equals(team)){
+        if (recruitsTeam != null && recruitsTeam.equals(team)) {
             PlayerTeam recruitTeam = level.getScoreboard().getPlayerTeam(team.getName());
-            if(recruitTeam != null) level.getScoreboard().removePlayerFromTeam(recruit.getStringUUID(), recruitTeam);
+            if (recruitTeam != null)
+                level.getScoreboard().removePlayerFromTeam(recruit.getStringUUID(), recruitTeam);
         }
     }
 }

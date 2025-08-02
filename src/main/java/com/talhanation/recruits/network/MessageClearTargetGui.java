@@ -2,6 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.IRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,7 +34,7 @@ public class MessageClearTargetGui implements Message<MessageClearTargetGui> {
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16.0D),
                 (recruit) -> recruit.getUUID().equals(this.recruit)
-        ).forEach((recruit) -> CommandEvents.onClearTargetButton(this.player, recruit, 0));
+        ).forEach((recruit) -> CommandEvents.onClearTargetButton(this.player, (IRecruitEntity) recruit, 0));
     }
 
     public MessageClearTargetGui fromBytes(FriendlyByteBuf buf) {

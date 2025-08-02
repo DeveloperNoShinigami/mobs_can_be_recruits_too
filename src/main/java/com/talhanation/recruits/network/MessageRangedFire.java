@@ -49,7 +49,7 @@ public class MessageRangedFire implements Message<MessageRangedFire> {
                 });
         for (Mob m : mobs) {
             if (m instanceof AbstractRecruitEntity recruit) {
-                CommandEvents.onRangedFireCommand(serverPlayer, this.player, recruit, group, should);
+                CommandEvents.onRangedFireCommand(serverPlayer, this.player, (IRecruitEntity) recruit, group, should);
             } else {
                 CommandEvents.onRangedFireCommand(serverPlayer, this.player, m, group, should);
             }

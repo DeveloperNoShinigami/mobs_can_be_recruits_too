@@ -47,7 +47,7 @@ public class MessageClearTarget implements Message<MessageClearTarget> {
                 });
         for (Mob m : mobs) {
             if (m instanceof AbstractRecruitEntity recruit) {
-                CommandEvents.onClearTargetButton(uuid, recruit, group);
+                CommandEvents.onClearTargetButton(uuid, (IRecruitEntity) recruit, group);
             } else {
                 CommandEvents.onClearTargetButton(uuid, m, group);
             }

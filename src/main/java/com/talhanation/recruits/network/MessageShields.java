@@ -50,7 +50,7 @@ public class MessageShields implements Message<MessageShields> {
 
         for (Mob mob : mobs) {
             if (mob instanceof AbstractRecruitEntity recruit) {
-                CommandEvents.onShieldsCommand(player, this.player, recruit, group, should);
+                CommandEvents.onShieldsCommand(player, this.player, (IRecruitEntity) recruit, group, should);
             } else {
                 CommandEvents.onShieldsCommand(player, this.player, mob, group, should);
             }

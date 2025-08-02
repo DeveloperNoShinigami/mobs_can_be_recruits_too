@@ -1006,7 +1006,7 @@ public class RecruitEvents {
         recruit.setGroup(0);
         recruit.setOwnerUUID(null);
         nbt.putInt("FollowState", 0);
-        nbt.putInt("AggroState", 3); // passive by default so controlled mobs don't fight
+        nbt.putInt("AggroState", 0); // neutral by default; mobs engage only enemies or threats
         nbt.putInt("PaymentTimer", AbstractRecruitEntity.getPaymentIntervalTicks());
       
         // initialize fields also used by recruits so that newly controlled mobs

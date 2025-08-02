@@ -2,6 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.IRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,7 +35,7 @@ public class MessageBackToMountEntity implements Message<MessageBackToMountEntit
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 context.getSender().getBoundingBox().inflate(100)
-        ).forEach((recruit) -> CommandEvents.onMountButton(uuid, recruit, null, group));
+        ).forEach((recruit) -> CommandEvents.onMountButton(uuid, (IRecruitEntity) recruit, null, group));
     }
 
     public MessageBackToMountEntity fromBytes(FriendlyByteBuf buf) {
