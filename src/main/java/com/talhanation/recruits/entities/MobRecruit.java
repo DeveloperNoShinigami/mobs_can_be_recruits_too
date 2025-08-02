@@ -8,6 +8,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.npc.InventoryCarrier;
 import net.minecraft.world.InteractionHand;
+
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
