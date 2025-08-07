@@ -3,6 +3,7 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
@@ -33,7 +34,12 @@ public class MessageListen implements Message<MessageListen> {
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(100),
                 (recruit) -> recruit.getUUID().equals(this.uuid)
-        ).forEach((recruit) -> recruit.setListen(bool));
+        ).forEach((recruit) -> {
+            recruit.setListen(bool);
+            player.sendSystemMessage(Component.translatable(
+                    bool ? "chat.recruits.text.listen_on" : "chat.recruits.text.listen_off",
+                    recruit.getName()));
+        });
     }
 
     public MessageListen fromBytes(FriendlyByteBuf buf) {

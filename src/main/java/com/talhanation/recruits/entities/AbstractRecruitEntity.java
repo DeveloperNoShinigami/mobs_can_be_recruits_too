@@ -1201,6 +1201,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
             this.resetPaymentTimer();
             this.setOwnerUUID(Optional.of(player.getUUID()));
             this.setIsOwned(true);
+            this.setListen(true);
             this.navigation.stop();
             this.setTarget(null);
             this.setFollowState(2);

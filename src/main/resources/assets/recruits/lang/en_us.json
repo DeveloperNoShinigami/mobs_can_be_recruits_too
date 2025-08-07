@@ -203,6 +203,8 @@
   "chat.recruits.text.recruited1": "%s: That's an honorable path you're on.",
   "chat.recruits.text.recruited2": "%s: How can i assist you?",
   "chat.recruits.text.recruited3": "%s: Your way is my way. Im honored.",
+  "chat.recruits.text.listen_on": "%s: I'm listening.",
+  "chat.recruits.text.listen_off": "%s: I'm ignoring your commands.",
   "chat.recruits.text.protect_died": "%s: The Mob under protection has been killed.",
   "chat.recruits.text.noMount": "%s: There is no mob or vehicle around me!",
   "chat.recruits.text.noPaymentInUpkeep": "%s: There is no payment in my upkeep or my inventory.",
