@@ -301,7 +301,9 @@ public class ModScreens {
                             player.getY() + distance,
                             player.getZ() + distance),
                     entity -> !(entity instanceof AbstractRecruitEntity) &&
-                            entity.getPersistentData().getBoolean("RecruitControlled") &&
+                            // The "RecruitControlled" flag is stored only on the server.
+                            // Rely on the server to validate controlled mobs and avoid
+                            // client-side checks that depend on unsynchronized NBT data.
                             entity.getUUID().equals(uuid)
             ).stream().findAny().orElse(null);
     }

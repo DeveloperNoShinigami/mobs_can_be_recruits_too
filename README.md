@@ -11,6 +11,10 @@ be enabled globally via the `UniversalMobControl` config or for specific mobs by
 adding their ids to `ControlledMobIds`. Right-click an owned controlled mob to
 open its inventory and command screen.
 
+If the GUI fails to open for a converted mob, update to a version where the
+client no longer depends on the unsynchronized `RecruitControlled` flag. See
+[docs/mob-recruit-gui.md](docs/mob-recruit-gui.md) for details.
+
 https://www.curseforge.com/minecraft/mc-mods/recruits
 
 All Rights Reserved unless otherwise explicitly stated.
