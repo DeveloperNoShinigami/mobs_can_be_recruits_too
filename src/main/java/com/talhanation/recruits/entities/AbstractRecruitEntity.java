@@ -1153,6 +1153,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
                     int state = this.getFollowState();
                     switch (state) {
                         default -> {
+                            this.clearHoldPos();
                             setFollowState(1);
                             player.sendSystemMessage(TEXT_FOLLOW(name));
                         }
@@ -1160,8 +1161,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
                             setFollowState(4);
                             player.sendSystemMessage(TEXT_HOLD_YOUR_POS(name));
                         }
-                        case 3 -> {
+                        case 4, 3 -> {
                             setFollowState(0);
+                            this.clearHoldPos();
                             player.sendSystemMessage(TEXT_WANDER(name));
                         }
                     }
