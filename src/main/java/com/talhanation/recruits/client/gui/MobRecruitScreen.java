@@ -38,11 +38,22 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
 
     public static int xp;
     public static int level;
+    public static int kills;
     public static float morale;
     public static float hunger;
 
+    private static final MutableComponent TEXT_PASSIVE = Component.translatable("gui.recruits.inv.text.passive");
+    private static final MutableComponent TEXT_NEUTRAL = Component.translatable("gui.recruits.inv.text.neutral");
+    private static final MutableComponent TEXT_AGGRESSIVE = Component.translatable("gui.recruits.inv.text.aggressive");
+    private static final MutableComponent TEXT_RAID = Component.translatable("gui.recruits.inv.text.raid");
+    private static final MutableComponent TOOLTIP_PASSIVE = Component.translatable("gui.recruits.inv.tooltip.passive");
+    private static final MutableComponent TOOLTIP_NEUTRAL = Component.translatable("gui.recruits.inv.tooltip.neutral");
+    private static final MutableComponent TOOLTIP_AGGRESSIVE = Component.translatable("gui.recruits.inv.tooltip.aggressive");
+    private static final MutableComponent TOOLTIP_RAID = Component.translatable("gui.recruits.inv.tooltip.raid");
+
     private static final MutableComponent TEXT_PROMOTE = Component.translatable("gui.recruits.inv.text.promote");
     private static final MutableComponent TOOLTIP_PROMOTE = Component.translatable("gui.recruits.inv.tooltip.promote");
+    private static final MutableComponent TOOLTIP_DISABLED_PROMOTE = Component.translatable("gui.recruits.inv.tooltip.promote_disabled");
 
     private static final MutableComponent TEXT_FOLLOW = Component.translatable("gui.recruits.inv.text.follow");
     private static final MutableComponent TEXT_WANDER = Component.translatable("gui.recruits.inv.text.wander");
@@ -99,7 +110,7 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
         addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos, 70, 20,
                 Component.literal("Commands"),
                 button -> CommandEvents.openCommandScreen(minecraft.player)));
-        Button promoteButton = addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos + 24, 70, 20,
+        promoteButton = addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos + 24, 70, 20,
                 TEXT_PROMOTE,
                 btn -> RecruitEvents.openControlledMobPromoteScreen(minecraft.player, mob)));
         promoteButton.setTooltip(Tooltip.create(TOOLTIP_PROMOTE));
@@ -200,6 +211,11 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
     protected void containerTick() {
         super.containerTick();
         if (nameField != null) nameField.tick();
+        if (promoteButton != null) {
+            boolean canPromote = level >= 3;
+            promoteButton.active = canPromote;
+            promoteButton.setTooltip(Tooltip.create(canPromote ? TOOLTIP_PROMOTE : TOOLTIP_DISABLED_PROMOTE));
+        }
     }
 
     @Override
@@ -220,6 +236,8 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
         guiGraphics.drawString(font, String.valueOf((int) morale), k + gap, l + 20, fontColor, false);
         guiGraphics.drawString(font, "Hunger:", k, l + 30, fontColor, false);
         guiGraphics.drawString(font, String.valueOf((int) hunger), k + gap, l + 30, fontColor, false);
+        guiGraphics.drawString(font, "Kills:", k, l + 40, fontColor, false);
+        guiGraphics.drawString(font, String.valueOf(kills), k + gap, l + 40, fontColor, false);
         guiGraphics.pose().popPose();
 
         int k2 = 79;
