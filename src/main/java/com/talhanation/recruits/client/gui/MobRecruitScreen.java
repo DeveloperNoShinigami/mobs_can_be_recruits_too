@@ -5,7 +5,11 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.inventory.ControlledMobMenu;
+import com.talhanation.recruits.network.MessageAggroGui;
+import com.talhanation.recruits.network.MessageClearTargetGui;
 import com.talhanation.recruits.network.MessageControlledMobGroup;
+import com.talhanation.recruits.network.MessageFollowGui;
+import com.talhanation.recruits.network.MessageMountEntityGui;
 import com.talhanation.recruits.network.MessageRenameMob;
 import com.talhanation.recruits.entities.IRecruitEntity;
 import net.minecraft.client.gui.GuiGraphics;
@@ -40,8 +44,40 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
     private static final MutableComponent TEXT_PROMOTE = Component.translatable("gui.recruits.inv.text.promote");
     private static final MutableComponent TOOLTIP_PROMOTE = Component.translatable("gui.recruits.inv.tooltip.promote");
 
+    private static final MutableComponent TEXT_FOLLOW = Component.translatable("gui.recruits.inv.text.follow");
+    private static final MutableComponent TEXT_WANDER = Component.translatable("gui.recruits.inv.text.wander");
+    private static final MutableComponent TEXT_HOLD_POS = Component.translatable("gui.recruits.inv.text.holdPos");
+    private static final MutableComponent TEXT_PASSIVE = Component.translatable("gui.recruits.inv.text.passive");
+    private static final MutableComponent TEXT_NEUTRAL = Component.translatable("gui.recruits.inv.text.neutral");
+    private static final MutableComponent TEXT_AGGRESSIVE = Component.translatable("gui.recruits.inv.text.aggressive");
+    private static final MutableComponent TEXT_RAID = Component.translatable("gui.recruits.inv.text.raid");
+    private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.inv.text.clearTargets");
+    private static final MutableComponent TEXT_MOUNT = Component.translatable("gui.recruits.command.text.mount");
+
+    private static final MutableComponent TEXT_INFO_FOLLOW = Component.translatable("gui.recruits.inv.info.text.follow");
+    private static final MutableComponent TEXT_INFO_WANDER = Component.translatable("gui.recruits.inv.info.text.wander");
+    private static final MutableComponent TEXT_INFO_HOLD_POS = Component.translatable("gui.recruits.inv.info.text.hold_pos");
+    private static final MutableComponent TEXT_INFO_PASSIVE = Component.translatable("gui.recruits.inv.info.text.passive");
+    private static final MutableComponent TEXT_INFO_NEUTRAL = Component.translatable("gui.recruits.inv.info.text.neutral");
+    private static final MutableComponent TEXT_INFO_AGGRESSIVE = Component.translatable("gui.recruits.inv.info.text.aggressive");
+    private static final MutableComponent TEXT_INFO_RAID = Component.translatable("gui.recruits.inv.info.text.raid");
+    private static final MutableComponent TEXT_INFO_PROTECT = Component.translatable("gui.recruits.inv.info.text.protect");
+    private static final MutableComponent TEXT_INFO_WORKING = Component.translatable("gui.recruits.inv.info.text.working");
+
+    private static final MutableComponent TOOLTIP_WANDER = Component.translatable("gui.recruits.inv.tooltip.wander");
+    private static final MutableComponent TOOLTIP_FOLLOW = Component.translatable("gui.recruits.inv.tooltip.follow");
+    private static final MutableComponent TOOLTIP_HOLD_POS = Component.translatable("gui.recruits.inv.tooltip.holdPos");
+    private static final MutableComponent TOOLTIP_PASSIVE = Component.translatable("gui.recruits.inv.tooltip.passive");
+    private static final MutableComponent TOOLTIP_NEUTRAL = Component.translatable("gui.recruits.inv.tooltip.neutral");
+    private static final MutableComponent TOOLTIP_AGGRESSIVE = Component.translatable("gui.recruits.inv.tooltip.aggressive");
+    private static final MutableComponent TOOLTIP_RAID = Component.translatable("gui.recruits.inv.tooltip.raid");
+    private static final MutableComponent TOOLTIP_CLEAR_TARGET = Component.translatable("gui.recruits.inv.tooltip.clearTargets");
+    private static final MutableComponent TOOLTIP_MOUNT = Component.translatable("gui.recruits.inv.tooltip.mount");
+
     private final Mob mob;
     private EditBox nameField;
+    private int follow;
+    private int aggro;
 
     public MobRecruitScreen(ControlledMobMenu container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""), IRecruitEntity.of(container.getMob()));
@@ -67,6 +103,97 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
                 TEXT_PROMOTE,
                 btn -> RecruitEvents.openControlledMobPromoteScreen(minecraft.player, mob)));
         promoteButton.setTooltip(Tooltip.create(TOOLTIP_PROMOTE));
+
+        int zeroLeftPos = leftPos + 180;
+        int zeroTopPos = topPos + 10;
+        int topPosGab = 5;
+
+        ExtendedButton buttonPassive = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE,
+                btn -> {
+                    aggro = mob.getPersistentData().getInt("AggroState");
+                    if (aggro != 3) {
+                        aggro = 3;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, mob.getUUID()));
+                    }
+                });
+        buttonPassive.setTooltip(Tooltip.create(TOOLTIP_PASSIVE));
+        addRenderableWidget(buttonPassive);
+
+        ExtendedButton buttonNeutral = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_NEUTRAL,
+                btn -> {
+                    aggro = mob.getPersistentData().getInt("AggroState");
+                    if (aggro != 0) {
+                        aggro = 0;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, mob.getUUID()));
+                    }
+                });
+        buttonNeutral.setTooltip(Tooltip.create(TOOLTIP_NEUTRAL));
+        addRenderableWidget(buttonNeutral);
+
+        ExtendedButton buttonAggressive = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_AGGRESSIVE,
+                btn -> {
+                    aggro = mob.getPersistentData().getInt("AggroState");
+                    if (aggro != 1) {
+                        aggro = 1;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, mob.getUUID()));
+                    }
+                });
+        buttonAggressive.setTooltip(Tooltip.create(TOOLTIP_AGGRESSIVE));
+        addRenderableWidget(buttonAggressive);
+
+        ExtendedButton buttonRaid = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_RAID,
+                btn -> {
+                    aggro = mob.getPersistentData().getInt("AggroState");
+                    if (aggro != 2) {
+                        aggro = 2;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, mob.getUUID()));
+                    }
+                });
+        buttonRaid.setTooltip(Tooltip.create(TOOLTIP_RAID));
+        addRenderableWidget(buttonRaid);
+
+        ExtendedButton buttonClearTarget = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET,
+                btn -> Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTargetGui(MobRecruitScreen.this.minecraft.player.getUUID(), mob.getUUID())));
+        buttonClearTarget.setTooltip(Tooltip.create(TOOLTIP_CLEAR_TARGET));
+        addRenderableWidget(buttonClearTarget);
+
+        ExtendedButton buttonMount = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_MOUNT,
+                btn -> Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntityGui(mob.getUUID(), false)));
+        buttonMount.setTooltip(Tooltip.create(TOOLTIP_MOUNT));
+        addRenderableWidget(buttonMount);
+
+        ExtendedButton buttonWander = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER,
+                btn -> {
+                    follow = mob.getPersistentData().getInt("FollowState");
+                    if (follow != 0) {
+                        follow = 0;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, mob.getUUID()));
+                    }
+                });
+        buttonWander.setTooltip(Tooltip.create(TOOLTIP_WANDER));
+        addRenderableWidget(buttonWander);
+
+        ExtendedButton buttonFollow = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_FOLLOW,
+                btn -> {
+                    follow = mob.getPersistentData().getInt("FollowState");
+                    if (follow != 1) {
+                        follow = 1;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, mob.getUUID()));
+                    }
+                });
+        buttonFollow.setTooltip(Tooltip.create(TOOLTIP_FOLLOW));
+        addRenderableWidget(buttonFollow);
+
+        ExtendedButton buttonHoldPos = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_HOLD_POS,
+                btn -> {
+                    follow = mob.getPersistentData().getInt("FollowState");
+                    if (follow != 2) {
+                        follow = 2;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, mob.getUUID()));
+                    }
+                });
+        buttonHoldPos.setTooltip(Tooltip.create(TOOLTIP_HOLD_POS));
+        addRenderableWidget(buttonHoldPos);
     }
 
     @Override
@@ -94,6 +221,30 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
         guiGraphics.drawString(font, "Hunger:", k, l + 30, fontColor, false);
         guiGraphics.drawString(font, String.valueOf((int) hunger), k + gap, l + 30, fontColor, false);
         guiGraphics.pose().popPose();
+
+        int k2 = 79;
+        int l2 = 19;
+        this.follow = mob.getPersistentData().getInt("FollowState");
+        this.aggro = mob.getPersistentData().getInt("AggroState");
+        String followText = switch (this.follow) {
+            case 0 -> TEXT_INFO_WANDER.getString();
+            case 1 -> TEXT_INFO_FOLLOW.getString();
+            case 2, 3, 4 -> TEXT_INFO_HOLD_POS.getString();
+            case 5 -> TEXT_INFO_PROTECT.getString();
+            case 6 -> TEXT_INFO_WORKING.getString();
+            default -> "";
+        };
+        guiGraphics.drawString(font, followText, k2 + 15, l2 + 58, fontColor, false);
+
+        String aggroText = switch (this.aggro) {
+            case 0 -> TEXT_INFO_NEUTRAL.getString();
+            case 1 -> TEXT_INFO_AGGRESSIVE.getString();
+            case 2 -> TEXT_INFO_RAID.getString();
+            case 3 -> TEXT_INFO_PASSIVE.getString();
+            default -> "";
+        };
+        int fnt = this.aggro == 3 ? 16733525 : fontColor;
+        guiGraphics.drawString(font, aggroText, k2 + 15, l2 + 56 + 15, fnt, false);
     }
 
     @Override
