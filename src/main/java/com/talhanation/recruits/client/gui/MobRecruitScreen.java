@@ -93,6 +93,9 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
     @Override
     protected void init() {
         super.init();
+        // Remove existing widgets to prevent duplicates if the screen is reopened
+        clearWidgets();
+
         Component name = mob.getCustomName() != null ? mob.getCustomName() : mob.getName();
         nameField = new EditBox(font, leftPos + 5, topPos - 23, 90, 20, name);
         nameField.setValue(name.getString());
@@ -100,6 +103,7 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
         nameField.setBordered(true);
         addRenderableWidget(nameField);
         setInitialFocus(nameField);
+
         addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos, 70, 20,
                 Component.literal("Commands"),
                 button -> CommandEvents.openCommandScreen(minecraft.player)));
