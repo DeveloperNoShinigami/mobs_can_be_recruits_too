@@ -3,6 +3,8 @@ package com.talhanation.recruits.inventory;
 import com.mojang.datafixers.util.Pair;
 import com.talhanation.recruits.init.ModScreens;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
+import com.talhanation.recruits.entities.IRecruitMob;
+import com.talhanation.recruits.entities.MobRecruit;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -106,6 +108,9 @@ public class ControlledMobMenu extends ContainerBase {
         mob.setItemSlot(EquipmentSlot.FEET, mobInventory.getItem(3));
         mob.setItemSlot(EquipmentSlot.OFFHAND, mobInventory.getItem(4));
         mob.setItemSlot(EquipmentSlot.MAINHAND, mobInventory.getItem(5));
+        if (!(mob instanceof IRecruitMob)) {
+            MobRecruit.get(mob).reloadInventory();
+        }
     }
 
     public ControlledMobMenu(int id, Mob mob, Inventory playerInventory){

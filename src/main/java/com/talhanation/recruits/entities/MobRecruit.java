@@ -1,19 +1,23 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.npc.InventoryCarrier;
 import net.minecraft.world.InteractionHand;
-
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.UUID;
+import java.util.WeakHashMap;
 
 /**
  * Wrapper that exposes recruit-style accessors for vanilla mobs using
@@ -47,12 +51,33 @@ public class MobRecruit implements IRecruitMob {
     private static final String KEY_UPKEEP_POS_Y = "UpkeepPosY";
     private static final String KEY_UPKEEP_POS_Z = "UpkeepPosZ";
 
+    private static final String NBT_KEY = "MobInventory";
+    private static final int INV_SIZE = RecruitInventoryMenu.INV_SIZE;
+
+    private static final Map<Mob, MobRecruit> WRAPPERS = new WeakHashMap<>();
+
+    public static MobRecruit get(Mob mob) {
+        return WRAPPERS.computeIfAbsent(mob, MobRecruit::new);
+    }
+
     private final Mob mob;
-    private final SimpleContainer inventory = new SimpleContainer(15);
+    private final SimpleContainer inventory;
+    private boolean loading;
     private int beforeItemSlot = -1;
 
     public MobRecruit(Mob mob) {
         this.mob = mob;
+        this.loading = false;
+        this.inventory = new SimpleContainer(INV_SIZE) {
+            @Override
+            public void setChanged() {
+                if (!loading) {
+                    saveInventory();
+                }
+                super.setChanged();
+            }
+        };
+        reloadInventory();
     }
 
     private CompoundTag data() {
@@ -115,6 +140,52 @@ public class MobRecruit implements IRecruitMob {
     @Override
     public Mob getMob() {
         return mob;
+    }
+
+    private void saveInventory() {
+        CompoundTag tag = mob.getPersistentData();
+        ListTag list = new ListTag();
+        for (int i = 6; i < inventory.getContainerSize(); i++) {
+            ItemStack stack = inventory.getItem(i);
+            if (!stack.isEmpty()) {
+                CompoundTag ct = new CompoundTag();
+                ct.putByte("Slot", (byte) i);
+                stack.save(ct);
+                list.add(ct);
+            }
+        }
+        tag.put(NBT_KEY, list);
+        mob.setItemSlot(EquipmentSlot.HEAD, inventory.getItem(0));
+        mob.setItemSlot(EquipmentSlot.CHEST, inventory.getItem(1));
+        mob.setItemSlot(EquipmentSlot.LEGS, inventory.getItem(2));
+        mob.setItemSlot(EquipmentSlot.FEET, inventory.getItem(3));
+        mob.setItemSlot(EquipmentSlot.OFFHAND, inventory.getItem(4));
+        mob.setItemSlot(EquipmentSlot.MAINHAND, inventory.getItem(5));
+    }
+
+    public void reloadInventory() {
+        loading = true;
+        inventory.clearContent();
+        CompoundTag tag = mob.getPersistentData();
+        if (tag.contains(NBT_KEY)) {
+            ListTag list = tag.getList(NBT_KEY, 10);
+            for (int i = 0; i < list.size(); i++) {
+                CompoundTag ct = list.getCompound(i);
+                int slot = ct.getByte("Slot") & 255;
+                if (slot < inventory.getContainerSize()) {
+                    inventory.setItem(slot, ItemStack.of(ct));
+                }
+            }
+        } else {
+            inventory.setItem(0, mob.getItemBySlot(EquipmentSlot.HEAD));
+            inventory.setItem(1, mob.getItemBySlot(EquipmentSlot.CHEST));
+            inventory.setItem(2, mob.getItemBySlot(EquipmentSlot.LEGS));
+            inventory.setItem(3, mob.getItemBySlot(EquipmentSlot.FEET));
+            inventory.setItem(4, mob.getItemBySlot(EquipmentSlot.OFFHAND));
+            inventory.setItem(5, mob.getItemBySlot(EquipmentSlot.MAINHAND));
+        }
+        loading = false;
+        saveInventory();
     }
 
     // ---------------------------------------------------------------------

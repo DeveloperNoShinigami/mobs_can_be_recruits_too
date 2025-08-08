@@ -38,7 +38,7 @@ public interface IRecruitEntity {
      * interface directly while other mobs are wrapped in a {@link MobRecruit}.
      */
     static IRecruitEntity of(Mob mob) {
-        return mob instanceof IRecruitEntity r ? r : new MobRecruit(mob);
+        return mob instanceof IRecruitEntity r ? r : MobRecruit.get(mob);
     }
 }
 

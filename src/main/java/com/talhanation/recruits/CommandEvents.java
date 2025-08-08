@@ -342,6 +342,9 @@ public class CommandEvents {
 
     public static void openMobInventoryScreen(Player player, Mob mob){
         if(player instanceof ServerPlayer serverPlayer){
+            if (!(mob instanceof IRecruitMob)) {
+                MobRecruit.get(mob).reloadInventory();
+            }
             updateRecruitInventoryScreen(serverPlayer);
             CompoundTag nbt = new CompoundTag();
             CompoundTag data = mob.getPersistentData();

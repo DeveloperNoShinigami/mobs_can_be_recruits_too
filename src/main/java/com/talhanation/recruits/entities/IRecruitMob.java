@@ -96,7 +96,7 @@ public interface IRecruitMob extends IRecruitEntity {
      * in a {@link MobRecruit} adapter.
      */
     static IRecruitMob of(Mob mob) {
-        return mob instanceof IRecruitMob r ? r : new MobRecruit(mob);
+        return mob instanceof IRecruitMob r ? r : MobRecruit.get(mob);
     }
 }
 
