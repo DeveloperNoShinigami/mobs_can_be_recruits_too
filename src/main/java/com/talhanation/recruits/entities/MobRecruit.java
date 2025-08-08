@@ -26,6 +26,7 @@ public class MobRecruit implements IRecruitMob {
     private static final String KEY_OWNER = "Owner";
     private static final String KEY_GROUP = "Group";
     private static final String KEY_FOLLOW_STATE = "FollowState";
+    private static final String KEY_AGGRO_STATE = "AggroState";
     private static final String KEY_SHOULD_FOLLOW = "ShouldFollow";
     private static final String KEY_PAYMENT_TIMER = "paymentTimer";
     private static final String KEY_UPKEEP_TIMER = "upkeepTimer";
@@ -162,6 +163,14 @@ public class MobRecruit implements IRecruitMob {
 
     public void setFollowState(int state) {
         setInt(KEY_FOLLOW_STATE, state);
+    }
+
+    public int getAggroState() {
+        return data().contains(KEY_AGGRO_STATE) ? getInt(KEY_AGGRO_STATE) : 0;
+    }
+
+    public void setAggroState(int state) {
+        setInt(KEY_AGGRO_STATE, state);
     }
 
     public boolean getShouldFollow() {
