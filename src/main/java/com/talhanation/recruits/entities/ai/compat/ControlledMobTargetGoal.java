@@ -12,4 +12,18 @@ public class ControlledMobTargetGoal extends NearestAttackableTargetGoal<LivingE
     public ControlledMobTargetGoal(PathfinderMob mob) {
         super(mob, LivingEntity.class, 10, true, false, target -> RecruitEvents.canAttack(mob, target));
     }
+
+    @Override
+    public boolean canUse() {
+        int state = this.mob.getPersistentData().getInt("AggroState");
+        if (state != 1 && state != 2) return false; // only free target when aggressive or raid
+        return super.canUse();
+    }
+
+    @Override
+    public boolean canContinueToUse() {
+        int state = this.mob.getPersistentData().getInt("AggroState");
+        if (state != 1 && state != 2) return false;
+        return super.canContinueToUse();
+    }
 }

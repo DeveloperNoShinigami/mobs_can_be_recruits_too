@@ -494,6 +494,10 @@ public class RecruitEvents {
                 if (mob instanceof PathfinderMob pathfinderMob) {
                     applyControlledMobGoals(pathfinderMob);
                 }
+                if(!nbt.contains("AggroState")) {
+                    // ensure older controlled mobs default to neutral behaviour
+                    nbt.putInt("AggroState", 0);
+                }
                 applyCompanionProfession(mob);
             }
         }
@@ -1118,12 +1122,18 @@ public class RecruitEvents {
 
             @Override
             public boolean canUse() {
-                return mob.getPersistentData().getInt("AggroState") != 3 && goal.canUse();
+                int state = mob.getPersistentData().getInt("AggroState");
+                if (state == 3) return false;                     // passive
+                if (state == 0 && mob.getTarget() == null) return false; // neutral: react only
+                return goal.canUse();
             }
 
             @Override
             public boolean canContinueToUse() {
-                return mob.getPersistentData().getInt("AggroState") != 3 && goal.canContinueToUse();
+                int state = mob.getPersistentData().getInt("AggroState");
+                if (state == 3) return false;
+                if (state == 0 && mob.getTarget() == null) return false;
+                return goal.canContinueToUse();
             }
 
             @Override
