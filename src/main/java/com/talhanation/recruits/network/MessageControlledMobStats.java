@@ -27,6 +27,7 @@ public class MessageControlledMobStats implements Message<MessageControlledMobSt
         if (nbt == null) return;
         MobRecruitScreen.level = nbt.getInt("Level");
         MobRecruitScreen.xp = nbt.getInt("Xp");
+        MobRecruitScreen.kills = nbt.getInt("Kills");
         MobRecruitScreen.morale = nbt.getFloat("Moral");
         MobRecruitScreen.hunger = nbt.getFloat("Hunger");
     }

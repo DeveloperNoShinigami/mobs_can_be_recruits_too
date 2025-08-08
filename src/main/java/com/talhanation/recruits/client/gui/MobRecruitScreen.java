@@ -35,6 +35,7 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
 
     public static int xp;
     public static int level;
+    public static int kills;
     public static float morale;
     public static float hunger;
 
@@ -49,10 +50,11 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
 
     private static final MutableComponent TEXT_PROMOTE = Component.translatable("gui.recruits.inv.text.promote");
     private static final MutableComponent TOOLTIP_PROMOTE = Component.translatable("gui.recruits.inv.tooltip.promote");
+    private static final MutableComponent TOOLTIP_DISABLED_PROMOTE = Component.translatable("gui.recruits.inv.tooltip.promote_disabled");
 
     private final Mob mob;
     private EditBox nameField;
-    private int aggro;
+    private Button promoteButton;
 
     public MobRecruitScreen(ControlledMobMenu container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""), IRecruitEntity.of(container.getMob()));
@@ -74,62 +76,23 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
         addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos, 70, 20,
                 Component.literal("Commands"),
                 button -> CommandEvents.openCommandScreen(minecraft.player)));
-        Button promoteButton = addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos + 24, 70, 20,
+        promoteButton = addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos + 24, 70, 20,
                 TEXT_PROMOTE,
                 btn -> RecruitEvents.openControlledMobPromoteScreen(minecraft.player, mob)));
-        promoteButton.setTooltip(Tooltip.create(TOOLTIP_PROMOTE));
-
-        this.aggro = mob.getPersistentData().getInt("AggroState");
-        int zeroLeftPos = leftPos + 180;
-        int zeroTopPos = topPos + 10;
-        int topPosGap = 5;
-
-        ExtendedButton buttonPassive = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGap) * 0, 80, 20, TEXT_PASSIVE,
-                btn -> {
-                    this.aggro = mob.getPersistentData().getInt("AggroState");
-                    if (this.aggro != 3) {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(3, mob.getUUID()));
-                    }
-                });
-        buttonPassive.setTooltip(Tooltip.create(TOOLTIP_PASSIVE));
-        addRenderableWidget(buttonPassive);
-
-        ExtendedButton buttonNeutral = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGap) * 1, 80, 20, TEXT_NEUTRAL,
-                btn -> {
-                    this.aggro = mob.getPersistentData().getInt("AggroState");
-                    if (this.aggro != 0) {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(0, mob.getUUID()));
-                    }
-                });
-        buttonNeutral.setTooltip(Tooltip.create(TOOLTIP_NEUTRAL));
-        addRenderableWidget(buttonNeutral);
-
-        ExtendedButton buttonAggressive = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGap) * 2, 80, 20, TEXT_AGGRESSIVE,
-                btn -> {
-                    this.aggro = mob.getPersistentData().getInt("AggroState");
-                    if (this.aggro != 1) {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(1, mob.getUUID()));
-                    }
-                });
-        buttonAggressive.setTooltip(Tooltip.create(TOOLTIP_AGGRESSIVE));
-        addRenderableWidget(buttonAggressive);
-
-        ExtendedButton buttonRaid = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGap) * 3, 80, 20, TEXT_RAID,
-                btn -> {
-                    this.aggro = mob.getPersistentData().getInt("AggroState");
-                    if (this.aggro != 2) {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(2, mob.getUUID()));
-                    }
-                });
-        buttonRaid.setTooltip(Tooltip.create(TOOLTIP_RAID));
-        addRenderableWidget(buttonRaid);
+        boolean canPromote = level >= 3;
+        promoteButton.setTooltip(Tooltip.create(canPromote ? TOOLTIP_PROMOTE : TOOLTIP_DISABLED_PROMOTE));
+        promoteButton.active = canPromote;
     }
 
     @Override
     protected void containerTick() {
         super.containerTick();
         if (nameField != null) nameField.tick();
-        this.aggro = mob.getPersistentData().getInt("AggroState");
+        if (promoteButton != null) {
+            boolean canPromote = level >= 3;
+            promoteButton.active = canPromote;
+            promoteButton.setTooltip(Tooltip.create(canPromote ? TOOLTIP_PROMOTE : TOOLTIP_DISABLED_PROMOTE));
+        }
     }
 
     @Override
@@ -150,16 +113,8 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
         guiGraphics.drawString(font, String.valueOf((int) morale), k + gap, l + 20, fontColor, false);
         guiGraphics.drawString(font, "Hunger:", k, l + 30, fontColor, false);
         guiGraphics.drawString(font, String.valueOf((int) hunger), k + gap, l + 30, fontColor, false);
-        guiGraphics.drawString(font, "Aggro:", k, l + 40, fontColor, false);
-        String aggroText = switch (this.aggro) {
-            case 0 -> TEXT_NEUTRAL.getString();
-            case 1 -> TEXT_AGGRESSIVE.getString();
-            case 2 -> TEXT_RAID.getString();
-            case 3 -> TEXT_PASSIVE.getString();
-            default -> "?";
-        };
-        int color = this.aggro == 3 ? 16733525 : fontColor;
-        guiGraphics.drawString(font, aggroText, k + gap, l + 40, color, false);
+        guiGraphics.drawString(font, "Kills:", k, l + 40, fontColor, false);
+        guiGraphics.drawString(font, String.valueOf(kills), k + gap, l + 40, fontColor, false);
         guiGraphics.pose().popPose();
     }
 

@@ -5,7 +5,9 @@ import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
 import com.talhanation.recruits.entities.IRecruitEntity;
+import com.talhanation.recruits.entities.IRecruitMob;
 import com.talhanation.recruits.entities.MessengerEntity;
+import com.talhanation.recruits.entities.MobRecruit;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.inventory.PromoteContainer;
@@ -36,7 +38,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.horse.AbstractChestedHorse;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.monster.AbstractIllager;
+import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.InteractionResult;
@@ -49,6 +53,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.nbt.ListTag;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobFollowOwnerGoal;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobHoldPosGoal;
@@ -309,6 +315,17 @@ public class RecruitEvents {
                 recruit.addXp(2);
                 recruit.checkLevel();
             }
+        } else if (owner instanceof Mob mob && !(mob instanceof AbstractRecruitEntity) && mob.getPersistentData().getBoolean("RecruitControlled")) {
+            if (!canAttack(mob, impactLiving)) {
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
+                return;
+            } else {
+                IRecruitMob recruit = IRecruitMob.of(mob);
+                if (recruit instanceof MobRecruit mr) {
+                    mr.addXp(2);
+                    mr.checkLevel();
+                }
+            }
         }
 
         if (owner instanceof AbstractIllager illager && !RecruitsServerConfig.PillagerFriendlyFire.get()) {
@@ -382,6 +399,20 @@ public class RecruitEvents {
 
         Entity target = event.getEntity();
         Entity source = event.getSource().getEntity();
+        if (target instanceof Mob mobTarget && !(mobTarget instanceof AbstractRecruitEntity) && mobTarget.getPersistentData().getBoolean("RecruitControlled")) {
+            IRecruitMob recruit = IRecruitMob.of(mobTarget);
+            if (recruit instanceof MobRecruit mr) {
+                mr.addXp(1);
+                mr.checkLevel();
+            }
+        }
+        if (source instanceof Mob mobSource && !(mobSource instanceof AbstractRecruitEntity) && mobSource.getPersistentData().getBoolean("RecruitControlled")) {
+            IRecruitMob recruit = IRecruitMob.of(mobSource);
+            if (recruit instanceof MobRecruit mr) {
+                mr.addXp(2);
+                mr.checkLevel();
+            }
+        }
         if (source instanceof LivingEntity sourceEntity) {
             if (target.getTeam() == null) return;
 
@@ -882,6 +913,36 @@ public class RecruitEvents {
         CompoundTag nbt = mob.getPersistentData();
         if(nbt.getBoolean("RecruitControlled")) {
             dropControlledMobInventory(mob);
+        }
+    }
+
+    @SubscribeEvent
+    public void onControlledMobKill(LivingDeathEvent event) {
+        if (event.getEntity().level().isClientSide()) return;
+        Entity source = event.getSource().getEntity();
+        if (source instanceof Mob mob && !(mob instanceof AbstractRecruitEntity) && mob.getPersistentData().getBoolean("RecruitControlled")) {
+            IRecruitMob recruit = IRecruitMob.of(mob);
+            if (recruit instanceof MobRecruit mr) {
+                mr.addXp(5);
+                mr.setKills(mr.getKills() + 1);
+                LivingEntity victim = event.getEntity();
+                if (victim instanceof Player) {
+                    mr.addXp(45);
+                }
+                if (victim instanceof Raider) {
+                    mr.addXp(5);
+                }
+                if (victim instanceof WitherBoss) {
+                    mr.addXp(99);
+                }
+                if (victim instanceof IronGolem) {
+                    mr.addXp(49);
+                }
+                if (victim instanceof EnderDragon) {
+                    mr.addXp(999);
+                }
+                mr.checkLevel();
+            }
         }
     }
 
