@@ -18,6 +18,8 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.EnumSet;
 
@@ -86,20 +88,21 @@ public class ControlledMobRangedMusketAttackGoal extends Goal {
 
     protected boolean isWeaponInHand() {
         ItemStack itemStack = mob.getItemBySlot(EquipmentSlot.MAINHAND);
-        String id = itemStack.getDescriptionId();
-        if (id.equals("item.musketmod.musket")) {
+        ResourceLocation key = ForgeRegistries.ITEMS.getKey(itemStack.getItem());
+        String id = key != null ? key.toString() : "";
+        if (id.equals("musketmod:musket")) {
             this.weapon = new MusketWeapon();
             return true;
-        } else if (id.equals("item.musketmod.musket_with_bayonet")) {
+        } else if (id.equals("musketmod:musket_with_bayonet")) {
             this.weapon = new MusketBayonetWeapon();
             return true;
-        } else if (id.equals("item.musketmod.musket_with_scope")) {
+        } else if (id.equals("musketmod:musket_with_scope")) {
             this.weapon = new MusketScopeWeapon();
             return true;
-        } else if (id.equals("item.musketmod.blunderbuss")) {
+        } else if (id.equals("musketmod:blunderbuss")) {
             this.weapon = new BlunderbussWeapon();
             return true;
-        } else if (id.equals("item.musketmod.pistol")) {
+        } else if (id.equals("musketmod:pistol")) {
             this.weapon = new PistolWeapon();
             return true;
         } else if (IWeapon.isCGMWeapon(itemStack)) {
