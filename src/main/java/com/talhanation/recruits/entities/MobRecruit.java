@@ -46,6 +46,9 @@ public class MobRecruit implements IRecruitMob {
     private static final String KEY_UPKEEP_POS_X = "UpkeepPosX";
     private static final String KEY_UPKEEP_POS_Y = "UpkeepPosY";
     private static final String KEY_UPKEEP_POS_Z = "UpkeepPosZ";
+    private static final String KEY_XP = "Xp";
+    private static final String KEY_LEVEL = "Level";
+    private static final String KEY_KILLS = "Kills";
 
     private final Mob mob;
     private final SimpleContainer inventory = new SimpleContainer(15);
@@ -194,6 +197,45 @@ public class MobRecruit implements IRecruitMob {
 
     public void setMountTimer(int timer) {
         setInt(KEY_MOUNT_TIMER, timer);
+    }
+
+    public int getXp() {
+        return getInt(KEY_XP);
+    }
+
+    public void setXp(int xp) {
+        setInt(KEY_XP, xp);
+    }
+
+    public int getXpLevel() {
+        return getInt(KEY_LEVEL);
+    }
+
+    public void setXpLevel(int level) {
+        setInt(KEY_LEVEL, level);
+    }
+
+    public void addXp(int xp) {
+        setXp(getXp() + xp);
+    }
+
+    public void addXpLevel(int level) {
+        setXpLevel(getXpLevel() + level);
+    }
+
+    public int getKills() {
+        return getInt(KEY_KILLS);
+    }
+
+    public void setKills(int kills) {
+        setInt(KEY_KILLS, kills);
+    }
+
+    public void checkLevel() {
+        if (getXp() >= RecruitsServerConfig.RecruitsMaxXpForLevelUp.get()) {
+            addXpLevel(1);
+            setXp(0);
+        }
     }
 
     @Nullable

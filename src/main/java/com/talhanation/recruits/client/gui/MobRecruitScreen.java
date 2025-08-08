@@ -34,14 +34,17 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
 
     public static int xp;
     public static int level;
+    public static int kills;
     public static float morale;
     public static float hunger;
 
     private static final MutableComponent TEXT_PROMOTE = Component.translatable("gui.recruits.inv.text.promote");
     private static final MutableComponent TOOLTIP_PROMOTE = Component.translatable("gui.recruits.inv.tooltip.promote");
+    private static final MutableComponent TOOLTIP_DISABLED_PROMOTE = Component.translatable("gui.recruits.inv.tooltip.promote_disabled");
 
     private final Mob mob;
     private EditBox nameField;
+    private Button promoteButton;
 
     public MobRecruitScreen(ControlledMobMenu container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""), IRecruitEntity.of(container.getMob()));
@@ -63,16 +66,23 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
         addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos, 70, 20,
                 Component.literal("Commands"),
                 button -> CommandEvents.openCommandScreen(minecraft.player)));
-        Button promoteButton = addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos + 24, 70, 20,
+        promoteButton = addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos + 24, 70, 20,
                 TEXT_PROMOTE,
                 btn -> RecruitEvents.openControlledMobPromoteScreen(minecraft.player, mob)));
-        promoteButton.setTooltip(Tooltip.create(TOOLTIP_PROMOTE));
+        boolean canPromote = level >= 3;
+        promoteButton.setTooltip(Tooltip.create(canPromote ? TOOLTIP_PROMOTE : TOOLTIP_DISABLED_PROMOTE));
+        promoteButton.active = canPromote;
     }
 
     @Override
     protected void containerTick() {
         super.containerTick();
         if (nameField != null) nameField.tick();
+        if (promoteButton != null) {
+            boolean canPromote = level >= 3;
+            promoteButton.active = canPromote;
+            promoteButton.setTooltip(Tooltip.create(canPromote ? TOOLTIP_PROMOTE : TOOLTIP_DISABLED_PROMOTE));
+        }
     }
 
     @Override
@@ -93,6 +103,8 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
         guiGraphics.drawString(font, String.valueOf((int) morale), k + gap, l + 20, fontColor, false);
         guiGraphics.drawString(font, "Hunger:", k, l + 30, fontColor, false);
         guiGraphics.drawString(font, String.valueOf((int) hunger), k + gap, l + 30, fontColor, false);
+        guiGraphics.drawString(font, "Kills:", k, l + 40, fontColor, false);
+        guiGraphics.drawString(font, String.valueOf(kills), k + gap, l + 40, fontColor, false);
         guiGraphics.pose().popPose();
     }
 
