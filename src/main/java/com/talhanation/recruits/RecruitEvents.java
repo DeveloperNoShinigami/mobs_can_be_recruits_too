@@ -7,6 +7,7 @@ import com.talhanation.recruits.entities.ICompanion;
 import com.talhanation.recruits.entities.IRecruitEntity;
 import com.talhanation.recruits.entities.IRecruitMob;
 import com.talhanation.recruits.entities.MessengerEntity;
+import com.talhanation.recruits.entities.IRecruitMob;
 import com.talhanation.recruits.entities.MobRecruit;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
 import com.talhanation.recruits.init.ModEntityTypes;
@@ -1199,6 +1200,9 @@ public class RecruitEvents {
                 if(data.contains(key)) tag.put(key, data.get(key).copy());
             }
         }
+        if (!(mob instanceof IRecruitMob)) {
+            MobRecruit.get(mob).reloadInventory();
+        }
     }
 
     private static ItemStack getOrEmpty(ItemStack[] arr, int idx) {
@@ -1255,6 +1259,9 @@ public class RecruitEvents {
             }
         }
         tag.put("MobInventory", list);
+        if (!(mob instanceof IRecruitMob)) {
+            MobRecruit.get(mob).reloadInventory();
+        }
     }
 
     public static void applyCompanionProfession(Mob mob) {
