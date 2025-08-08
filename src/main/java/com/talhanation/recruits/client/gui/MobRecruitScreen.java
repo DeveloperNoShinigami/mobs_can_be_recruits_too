@@ -58,10 +58,6 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
     private static final MutableComponent TEXT_FOLLOW = Component.translatable("gui.recruits.inv.text.follow");
     private static final MutableComponent TEXT_WANDER = Component.translatable("gui.recruits.inv.text.wander");
     private static final MutableComponent TEXT_HOLD_POS = Component.translatable("gui.recruits.inv.text.holdPos");
-    private static final MutableComponent TEXT_PASSIVE = Component.translatable("gui.recruits.inv.text.passive");
-    private static final MutableComponent TEXT_NEUTRAL = Component.translatable("gui.recruits.inv.text.neutral");
-    private static final MutableComponent TEXT_AGGRESSIVE = Component.translatable("gui.recruits.inv.text.aggressive");
-    private static final MutableComponent TEXT_RAID = Component.translatable("gui.recruits.inv.text.raid");
     private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.inv.text.clearTargets");
     private static final MutableComponent TEXT_MOUNT = Component.translatable("gui.recruits.command.text.mount");
 
@@ -78,15 +74,12 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
     private static final MutableComponent TOOLTIP_WANDER = Component.translatable("gui.recruits.inv.tooltip.wander");
     private static final MutableComponent TOOLTIP_FOLLOW = Component.translatable("gui.recruits.inv.tooltip.follow");
     private static final MutableComponent TOOLTIP_HOLD_POS = Component.translatable("gui.recruits.inv.tooltip.holdPos");
-    private static final MutableComponent TOOLTIP_PASSIVE = Component.translatable("gui.recruits.inv.tooltip.passive");
-    private static final MutableComponent TOOLTIP_NEUTRAL = Component.translatable("gui.recruits.inv.tooltip.neutral");
-    private static final MutableComponent TOOLTIP_AGGRESSIVE = Component.translatable("gui.recruits.inv.tooltip.aggressive");
-    private static final MutableComponent TOOLTIP_RAID = Component.translatable("gui.recruits.inv.tooltip.raid");
     private static final MutableComponent TOOLTIP_CLEAR_TARGET = Component.translatable("gui.recruits.inv.tooltip.clearTargets");
     private static final MutableComponent TOOLTIP_MOUNT = Component.translatable("gui.recruits.inv.tooltip.mount");
 
     private final Mob mob;
     private EditBox nameField;
+    private Button promoteButton;
     private int follow;
     private int aggro;
 
