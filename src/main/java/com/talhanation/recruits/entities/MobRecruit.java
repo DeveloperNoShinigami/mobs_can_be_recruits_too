@@ -30,6 +30,7 @@ public class MobRecruit implements IRecruitMob {
     private static final String KEY_OWNER = "Owner";
     private static final String KEY_GROUP = "Group";
     private static final String KEY_FOLLOW_STATE = "FollowState";
+    private static final String KEY_AGGRO_STATE = "AggroState";
     private static final String KEY_SHOULD_FOLLOW = "ShouldFollow";
     private static final String KEY_PAYMENT_TIMER = "paymentTimer";
     private static final String KEY_UPKEEP_TIMER = "upkeepTimer";
@@ -50,6 +51,9 @@ public class MobRecruit implements IRecruitMob {
     private static final String KEY_UPKEEP_POS_X = "UpkeepPosX";
     private static final String KEY_UPKEEP_POS_Y = "UpkeepPosY";
     private static final String KEY_UPKEEP_POS_Z = "UpkeepPosZ";
+    private static final String KEY_XP = "Xp";
+    private static final String KEY_LEVEL = "Level";
+    private static final String KEY_KILLS = "Kills";
 
     private static final String NBT_KEY = "MobInventory";
     private static final int INV_SIZE = RecruitInventoryMenu.INV_SIZE;
@@ -235,6 +239,14 @@ public class MobRecruit implements IRecruitMob {
         setInt(KEY_FOLLOW_STATE, state);
     }
 
+    public int getAggroState() {
+        return data().contains(KEY_AGGRO_STATE) ? getInt(KEY_AGGRO_STATE) : 0;
+    }
+
+    public void setAggroState(int state) {
+        setInt(KEY_AGGRO_STATE, state);
+    }
+
     public boolean getShouldFollow() {
         return getBoolean(KEY_SHOULD_FOLLOW);
     }
@@ -265,6 +277,45 @@ public class MobRecruit implements IRecruitMob {
 
     public void setMountTimer(int timer) {
         setInt(KEY_MOUNT_TIMER, timer);
+    }
+
+    public int getXp() {
+        return getInt(KEY_XP);
+    }
+
+    public void setXp(int xp) {
+        setInt(KEY_XP, xp);
+    }
+
+    public int getXpLevel() {
+        return getInt(KEY_LEVEL);
+    }
+
+    public void setXpLevel(int level) {
+        setInt(KEY_LEVEL, level);
+    }
+
+    public void addXp(int xp) {
+        setXp(getXp() + xp);
+    }
+
+    public void addXpLevel(int level) {
+        setXpLevel(getXpLevel() + level);
+    }
+
+    public int getKills() {
+        return getInt(KEY_KILLS);
+    }
+
+    public void setKills(int kills) {
+        setInt(KEY_KILLS, kills);
+    }
+
+    public void checkLevel() {
+        if (getXp() >= RecruitsServerConfig.RecruitsMaxXpForLevelUp.get()) {
+            addXpLevel(1);
+            setXp(0);
+        }
     }
 
     @Nullable

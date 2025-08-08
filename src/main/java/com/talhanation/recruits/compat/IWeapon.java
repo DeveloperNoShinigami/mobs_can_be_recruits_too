@@ -1,5 +1,4 @@
 package com.talhanation.recruits.compat;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -28,7 +27,7 @@ public interface IWeapon {
     boolean canMelee();
     boolean isBow();
     boolean isCrossBow();
-    void performRangedAttackIWeapon(AbstractRecruitEntity shooter, double x, double y, double z, float projectileSpeed);
+    void performRangedAttackIWeapon(LivingEntity shooter, double x, double y, double z, float projectileSpeed);
 
     static boolean isMusketModWeapon(ItemStack stack){
         return stack.getDescriptionId().equals("item.musketmod.musket") ||

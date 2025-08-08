@@ -350,6 +350,7 @@ public class CommandEvents {
             CompoundTag data = mob.getPersistentData();
             if (data.contains("Xp")) nbt.putInt("Xp", data.getInt("Xp"));
             if (data.contains("Level")) nbt.putInt("Level", data.getInt("Level"));
+            if (data.contains("Kills")) nbt.putInt("Kills", data.getInt("Kills"));
             if (data.contains("Moral")) nbt.putFloat("Moral", data.getFloat("Moral"));
             if (data.contains("Hunger")) nbt.putFloat("Hunger", data.getFloat("Hunger"));
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new MessageControlledMobStats(nbt));
