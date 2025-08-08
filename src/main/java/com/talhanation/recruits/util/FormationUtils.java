@@ -142,7 +142,7 @@ public class FormationUtils {
             AbstractRecruitEntity recruit = mob instanceof AbstractRecruitEntity ar ? ar : null;
             Vec3 pos = null;
 
-            if (recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
+            if (recruit != null && recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
                 FormationPosition position = possiblePositions.get(recruit.formationPos);
                 position.isFree = false;
                 pos = position.position;
@@ -209,7 +209,7 @@ public class FormationUtils {
             AbstractRecruitEntity recruit = mob instanceof AbstractRecruitEntity ar ? ar : null;
             Vec3 pos = null;
 
-            if (recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
+            if (recruit != null && recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
                 FormationPosition position = possiblePositions.get(recruit.formationPos);
                 position.isFree = false;
                 pos = position.position;
@@ -269,7 +269,7 @@ public class FormationUtils {
             AbstractRecruitEntity recruit = mob instanceof AbstractRecruitEntity ar ? ar : null;
             Vec3 pos = null;
 
-            if (recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
+            if (recruit != null && recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
                 FormationPosition position = possiblePositions.get(recruit.formationPos);
                 position.isFree = false;
                 pos = position.position;
@@ -353,7 +353,7 @@ public class FormationUtils {
             AbstractRecruitEntity recruit = mob instanceof AbstractRecruitEntity ar ? ar : null;
             Vec3 pos = null;
 
-            if (recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
+            if (recruit != null && recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
                 FormationPosition position = possiblePositions.get(recruit.formationPos);
                 position.isFree = false;
                 pos = position.position;
@@ -426,7 +426,7 @@ public class FormationUtils {
             AbstractRecruitEntity recruit = mob instanceof AbstractRecruitEntity ar ? ar : null;
             Vec3 pos = null;
 
-            if (recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
+            if (recruit != null && recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
                 FormationPosition position = possiblePositions.get(recruit.formationPos);
                 position.isFree = false;
                 pos = position.position;
