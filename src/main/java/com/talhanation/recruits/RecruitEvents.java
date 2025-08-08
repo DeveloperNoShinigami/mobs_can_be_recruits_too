@@ -57,6 +57,7 @@ import com.talhanation.recruits.entities.ai.compat.ControlledMobTargetGoal;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobMeleeAttackGoal;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobRangedBowAttackGoal;
 import com.talhanation.recruits.entities.ai.compat.ControlledMobRestGoal;
+import com.talhanation.recruits.entities.ai.compat.ControlledMobRangedMusketAttackGoal;
 import com.talhanation.recruits.util.MobRecruitHandler;
 import com.talhanation.recruits.util.RecruitHandler;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
@@ -1035,13 +1036,26 @@ public class RecruitEvents {
         pathfinderMob.goalSelector.addGoal(7, new ControlledMobFollowOwnerGoal(pathfinderMob, 1.0D, 6.0F, 2.0F));
         pathfinderMob.goalSelector.addGoal(6, new ControlledMobHoldPosGoal(pathfinderMob, 1.0D));
         pathfinderMob.goalSelector.addGoal(5, new ControlledMobRestGoal(pathfinderMob));
-        if (pathfinderMob instanceof RangedAttackMob ranged) {
+        ItemStack mainHand = pathfinderMob.getItemBySlot(EquipmentSlot.MAINHAND);
+        if (isMusket(mainHand)) {
+            pathfinderMob.goalSelector.addGoal(4, new ControlledMobRangedMusketAttackGoal(pathfinderMob, 3.0D));
+        } else if (pathfinderMob instanceof RangedAttackMob ranged) {
             pathfinderMob.goalSelector.addGoal(4, new ControlledMobRangedBowAttackGoal<>((PathfinderMob & RangedAttackMob) ranged, 1.0D, 20, 15.0F));
         } else {
             pathfinderMob.goalSelector.addGoal(4, new ControlledMobMeleeAttackGoal(pathfinderMob, 1.2D, true));
         }
         pathfinderMob.targetSelector.addGoal(1, new HurtByTargetGoal(pathfinderMob));
         pathfinderMob.targetSelector.addGoal(2, new ControlledMobTargetGoal(pathfinderMob));
+    }
+
+    private static boolean isMusket(ItemStack stack) {
+        String id = stack.getDescriptionId();
+        return id.equals("item.musketmod.musket") ||
+                id.equals("item.musketmod.musket_with_bayonet") ||
+                id.equals("item.musketmod.musket_with_scope") ||
+                id.equals("item.musketmod.blunderbuss") ||
+                id.equals("item.musketmod.pistol") ||
+                IWeapon.isCGMWeapon(stack);
     }
 
     private static void maybeReplaceRecruit(AbstractRecruitEntity recruit){

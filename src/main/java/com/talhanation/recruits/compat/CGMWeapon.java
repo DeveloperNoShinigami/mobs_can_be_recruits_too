@@ -1,6 +1,5 @@
 package com.talhanation.recruits.compat;
 
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -74,12 +73,12 @@ public class CGMWeapon implements IWeapon {
     public boolean isCrossBow() { return false; }
 
     @Override
-    public void performRangedAttackIWeapon(AbstractRecruitEntity shooter, double x, double y, double z, float projectileSpeed) {
+    public void performRangedAttackIWeapon(LivingEntity shooter, double x, double y, double z, float projectileSpeed) {
         AbstractArrow projectileEntity = this.getProjectileArrow(shooter);
         this.shootArrow(shooter, projectileEntity, x, y, z);
         shooter.playSound(this.getShootSound(), 1.0F, 1.0F);
         shooter.level().addFreshEntity(projectileEntity);
-        shooter.damageMainHandItem();
+        shooter.getMainHandItem().hurtAndBreak(1, shooter, (p) -> p.broadcastBreakEvent(net.minecraft.world.entity.EquipmentSlot.MAINHAND));
     }
 
     @Override
