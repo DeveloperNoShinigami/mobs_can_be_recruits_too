@@ -61,7 +61,7 @@ import com.talhanation.recruits.entities.ai.compat.ControlledMobRangedMusketAtta
 import com.talhanation.recruits.util.MobRecruitHandler;
 import com.talhanation.recruits.util.RecruitHandler;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -1042,10 +1042,49 @@ public class RecruitEvents {
         } else if (pathfinderMob instanceof RangedAttackMob ranged) {
             pathfinderMob.goalSelector.addGoal(4, new ControlledMobRangedBowAttackGoal<>((PathfinderMob & RangedAttackMob) ranged, 1.0D, 20, 15.0F));
         } else {
-            pathfinderMob.goalSelector.addGoal(4, new ControlledMobMeleeAttackGoal(pathfinderMob, 1.2D, true));
+            Goal attack = new ControlledMobMeleeAttackGoal(pathfinderMob, 1.2D, true);
+            pathfinderMob.goalSelector.addGoal(4, wrapAggroCheck(pathfinderMob, attack));
         }
         pathfinderMob.targetSelector.addGoal(1, new HurtByTargetGoal(pathfinderMob));
-        pathfinderMob.targetSelector.addGoal(2, new ControlledMobTargetGoal(pathfinderMob));
+        pathfinderMob.targetSelector.addGoal(2, wrapAggroCheck(pathfinderMob, new ControlledMobTargetGoal(pathfinderMob)));
+    }
+
+    private static Goal wrapAggroCheck(PathfinderMob mob, Goal goal) {
+        return new Goal() {
+            {
+                this.setFlags(goal.getFlags());
+            }
+
+            @Override
+            public boolean canUse() {
+                return mob.getPersistentData().getInt("AggroState") != 3 && goal.canUse();
+            }
+
+            @Override
+            public boolean canContinueToUse() {
+                return mob.getPersistentData().getInt("AggroState") != 3 && goal.canContinueToUse();
+            }
+
+            @Override
+            public void start() {
+                goal.start();
+            }
+
+            @Override
+            public void stop() {
+                goal.stop();
+            }
+
+            @Override
+            public void tick() {
+                goal.tick();
+            }
+
+            @Override
+            public boolean requiresUpdateEveryTick() {
+                return goal.requiresUpdateEveryTick();
+            }
+        };
     }
 
     private static boolean isMusket(ItemStack stack) {
