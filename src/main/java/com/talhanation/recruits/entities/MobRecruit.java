@@ -180,7 +180,16 @@ public class MobRecruit implements IRecruitMob {
                     inventory.setItem(slot, ItemStack.of(ct));
                 }
             }
+
+            // always sync equipment slots with the mob
+            inventory.setItem(0, mob.getItemBySlot(EquipmentSlot.HEAD));
+            inventory.setItem(1, mob.getItemBySlot(EquipmentSlot.CHEST));
+            inventory.setItem(2, mob.getItemBySlot(EquipmentSlot.LEGS));
+            inventory.setItem(3, mob.getItemBySlot(EquipmentSlot.FEET));
+            inventory.setItem(4, mob.getItemBySlot(EquipmentSlot.OFFHAND));
+            inventory.setItem(5, mob.getItemBySlot(EquipmentSlot.MAINHAND));
         } else {
+            // no NBT, but still ensure equipment slots are populated
             inventory.setItem(0, mob.getItemBySlot(EquipmentSlot.HEAD));
             inventory.setItem(1, mob.getItemBySlot(EquipmentSlot.CHEST));
             inventory.setItem(2, mob.getItemBySlot(EquipmentSlot.LEGS));
