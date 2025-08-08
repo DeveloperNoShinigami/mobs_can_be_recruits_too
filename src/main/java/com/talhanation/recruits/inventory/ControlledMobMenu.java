@@ -3,6 +3,7 @@ package com.talhanation.recruits.inventory;
 import com.mojang.datafixers.util.Pair;
 import com.talhanation.recruits.init.ModScreens;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
+import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.IRecruitMob;
 import com.talhanation.recruits.entities.MobRecruit;
 import de.maxhenkel.corelib.inventory.ContainerBase;
@@ -13,6 +14,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -108,6 +110,9 @@ public class ControlledMobMenu extends ContainerBase {
         mob.setItemSlot(EquipmentSlot.FEET, mobInventory.getItem(3));
         mob.setItemSlot(EquipmentSlot.OFFHAND, mobInventory.getItem(4));
         mob.setItemSlot(EquipmentSlot.MAINHAND, mobInventory.getItem(5));
+        if (mob instanceof PathfinderMob pathfinderMob) {
+            RecruitEvents.applyControlledMobGoals(pathfinderMob);
+        }
         if (!(mob instanceof IRecruitMob)) {
             MobRecruit.get(mob).reloadInventory();
         }
