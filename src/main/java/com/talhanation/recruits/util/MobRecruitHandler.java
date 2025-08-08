@@ -41,6 +41,7 @@ public class MobRecruitHandler implements RecruitHandler {
                 nbt.putBoolean("Owned", true);
                 nbt.putUUID("Owner", player.getUUID());
                 nbt.putInt("FollowState", 1);
+                nbt.putInt("AggroState", 3); // start passive after recruitment
                 nbt.putBoolean("Listen", true);
                 RecruitEventsAccessor.resetControlledMobPaymentTimer(mob);
                 if (mob instanceof PathfinderMob pathfinderMob) {

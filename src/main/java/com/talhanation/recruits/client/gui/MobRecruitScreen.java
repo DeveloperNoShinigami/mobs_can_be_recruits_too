@@ -6,6 +6,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.inventory.ControlledMobMenu;
 import com.talhanation.recruits.network.MessageControlledMobGroup;
+import com.talhanation.recruits.network.MessageAggroGui;
 import com.talhanation.recruits.network.MessageRenameMob;
 import com.talhanation.recruits.entities.IRecruitEntity;
 import net.minecraft.client.gui.GuiGraphics;
@@ -37,6 +38,15 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
     public static int kills;
     public static float morale;
     public static float hunger;
+
+    private static final MutableComponent TEXT_PASSIVE = Component.translatable("gui.recruits.inv.text.passive");
+    private static final MutableComponent TEXT_NEUTRAL = Component.translatable("gui.recruits.inv.text.neutral");
+    private static final MutableComponent TEXT_AGGRESSIVE = Component.translatable("gui.recruits.inv.text.aggressive");
+    private static final MutableComponent TEXT_RAID = Component.translatable("gui.recruits.inv.text.raid");
+    private static final MutableComponent TOOLTIP_PASSIVE = Component.translatable("gui.recruits.inv.tooltip.passive");
+    private static final MutableComponent TOOLTIP_NEUTRAL = Component.translatable("gui.recruits.inv.tooltip.neutral");
+    private static final MutableComponent TOOLTIP_AGGRESSIVE = Component.translatable("gui.recruits.inv.tooltip.aggressive");
+    private static final MutableComponent TOOLTIP_RAID = Component.translatable("gui.recruits.inv.tooltip.raid");
 
     private static final MutableComponent TEXT_PROMOTE = Component.translatable("gui.recruits.inv.text.promote");
     private static final MutableComponent TOOLTIP_PROMOTE = Component.translatable("gui.recruits.inv.tooltip.promote");
