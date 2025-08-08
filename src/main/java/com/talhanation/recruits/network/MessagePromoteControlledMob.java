@@ -4,7 +4,9 @@ import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
@@ -33,13 +35,12 @@ public class MessagePromoteControlledMob implements Message<MessagePromoteContro
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                Mob.class,
-                player.getBoundingBox().inflate(16D),
-                m -> !(m instanceof AbstractRecruitEntity) &&
-                        m.getPersistentData().getBoolean("RecruitControlled") &&
-                        m.getUUID().equals(this.mobId)
-        ).forEach(m -> RecruitEvents.promoteControlledMob(m, profession, name, player));
+        Entity entity = ((ServerLevel) player.level()).getEntity(this.mobId);
+        if (entity instanceof Mob mob
+                && !(mob instanceof AbstractRecruitEntity)
+                && mob.getPersistentData().getBoolean("RecruitControlled")) {
+            RecruitEvents.promoteControlledMob(mob, profession, name, player);
+        }
     }
 
     @Override
