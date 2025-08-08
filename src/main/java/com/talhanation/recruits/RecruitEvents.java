@@ -1148,13 +1148,50 @@ public class RecruitEvents {
         };
     }
 
+    /**
+     * Re-evaluates the attack goal of a controlled mob based on its main hand item.
+     * Removes previously registered recruit attack goals and adds the appropriate
+     * goal for the current weapon. This is used when the mob's inventory changes.
+     */
+    public static void refreshControlledMobGoals(PathfinderMob pathfinderMob) {
+        try {
+            java.lang.reflect.Field f = pathfinderMob.goalSelector.getClass().getDeclaredField("availableGoals");
+            f.setAccessible(true);
+            java.util.Set<?> goals = (java.util.Set<?>) f.get(pathfinderMob.goalSelector);
+            goals.removeIf(w -> {
+                try {
+                    Goal g = (Goal) w.getClass().getDeclaredField("goal").get(w);
+                    int priority = w.getClass().getDeclaredField("priority").getInt(w);
+                    return priority == 4 && (g instanceof ControlledMobRangedMusketAttackGoal
+                            || g instanceof ControlledMobMeleeAttackGoal
+                            || g instanceof ControlledMobRangedBowAttackGoal);
+                } catch (Exception e) {
+                    return false;
+                }
+            });
+        } catch (Exception ignored) {
+        }
+
+        ItemStack mainHand = pathfinderMob.getItemBySlot(EquipmentSlot.MAINHAND);
+        if (isMusket(mainHand)) {
+            pathfinderMob.goalSelector.addGoal(4, new ControlledMobRangedMusketAttackGoal(pathfinderMob, 3.0D));
+        } else if (pathfinderMob instanceof RangedAttackMob ranged) {
+            pathfinderMob.goalSelector.addGoal(4, new ControlledMobRangedBowAttackGoal<>((PathfinderMob & RangedAttackMob) ranged, 1.0D, 20, 15.0F));
+        } else {
+            Goal attack = new ControlledMobMeleeAttackGoal(pathfinderMob, 1.2D, true);
+            pathfinderMob.goalSelector.addGoal(4, wrapAggroCheck(pathfinderMob, attack));
+        }
+    }
+
     private static boolean isMusket(ItemStack stack) {
-        String id = stack.getDescriptionId();
-        return id.equals("item.musketmod.musket") ||
-                id.equals("item.musketmod.musket_with_bayonet") ||
-                id.equals("item.musketmod.musket_with_scope") ||
-                id.equals("item.musketmod.blunderbuss") ||
-                id.equals("item.musketmod.pistol") ||
+        net.minecraft.resources.ResourceLocation key = net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(stack.getItem());
+        if (key == null) return false;
+        String id = key.toString();
+        return id.equals("musketmod:musket") ||
+                id.equals("musketmod:musket_with_bayonet") ||
+                id.equals("musketmod:musket_with_scope") ||
+                id.equals("musketmod:blunderbuss") ||
+                id.equals("musketmod:pistol") ||
                 IWeapon.isCGMWeapon(stack);
     }
 
