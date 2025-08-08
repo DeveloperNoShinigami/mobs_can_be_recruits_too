@@ -129,7 +129,7 @@ public class CrossbowWeapon implements IWeapon {
     }
 
     @Override
-    public void performRangedAttackIWeapon(AbstractRecruitEntity shooter, double x, double y, double z, float projectileSpeed) {
+    public void performRangedAttackIWeapon(LivingEntity shooter, double x, double y, double z, float projectileSpeed) {
         AbstractArrow projectileEntity = this.getProjectileArrow(shooter);
 		
         int i = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.PIERCING, shooter.getMainHandItem());
@@ -147,12 +147,12 @@ public class CrossbowWeapon implements IWeapon {
         shooter.playSound(this.getShootSound(), 1.0F, 1.0F / (shooter.getRandom().nextFloat() * 0.4F + 0.8F));
         shooter.getCommandSenderWorld().addFreshEntity(projectileEntity);
 
-        if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
-            shooter.consumeArrow();
+        if (RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get() && shooter instanceof AbstractRecruitEntity recruit) {
+            recruit.consumeArrow();
             projectileEntity.pickup = AbstractArrow.Pickup.ALLOWED;
         }
 
-        shooter.damageMainHandItem();
+        shooter.getMainHandItem().hurtAndBreak(1, shooter, (p) -> p.broadcastBreakEvent(net.minecraft.world.entity.EquipmentSlot.MAINHAND));
 
     }
 

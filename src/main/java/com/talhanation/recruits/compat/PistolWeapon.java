@@ -1,7 +1,6 @@
 package com.talhanation.recruits.compat;
 
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -237,7 +236,7 @@ public class PistolWeapon implements IWeapon {
     }
 
     @Override
-    public void performRangedAttackIWeapon(AbstractRecruitEntity shooter, double x, double y, double z, float projectileSpeed) {
+    public void performRangedAttackIWeapon(LivingEntity shooter, double x, double y, double z, float projectileSpeed) {
         AbstractHurtingProjectile projectileEntity = this.getProjectile(shooter);
         double d0 = x - shooter.getX();
         double d1 = y + 0.5D - projectileEntity.getY();
@@ -248,7 +247,7 @@ public class PistolWeapon implements IWeapon {
         shooter.playSound(this.getShootSound(), 1.0F, 1.0F / (shooter.getRandom().nextFloat() * 0.4F + 0.8F));
         shooter.getCommandSenderWorld().addFreshEntity(projectileEntity);
 
-        shooter.damageMainHandItem();
+        shooter.getMainHandItem().hurtAndBreak(1, shooter, (p) -> p.broadcastBreakEvent(net.minecraft.world.entity.EquipmentSlot.MAINHAND));
     }
 
 }
