@@ -1,9 +1,11 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.MobRecruit;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Mob;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -28,12 +30,17 @@ public class MessageClearUpkeepGui implements Message<MessageClearUpkeepGui> {
     public void executeServerSide(NetworkEvent.Context context){
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
+                Mob.class,
                 player.getBoundingBox().inflate(16.0D),
-                (recruit) -> recruit.getUUID().equals(this.uuid)
-        ).forEach((recruit) -> {
-            recruit.clearUpkeepPos();
-            recruit.clearUpkeepEntity();
+                (mob) -> mob.getUUID().equals(this.uuid) &&
+                        (mob instanceof AbstractRecruitEntity || mob.getPersistentData().getBoolean("RecruitControlled"))
+        ).forEach(mob -> {
+            MobRecruit recruit = MobRecruit.get(mob);
+            recruit.setUpkeepTimer(0);
+            mob.getPersistentData().remove("UpkeepUUID");
+            mob.getPersistentData().remove("UpkeepPosX");
+            mob.getPersistentData().remove("UpkeepPosY");
+            mob.getPersistentData().remove("UpkeepPosZ");
         });
     }
 

@@ -1,11 +1,11 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.IRecruitEntity;
+import com.talhanation.recruits.entities.MobRecruit;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Mob;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -32,10 +32,17 @@ public class MessageDismountGui implements Message<MessageDismountGui> {
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
         serverPlayer.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
+                Mob.class,
                 serverPlayer.getBoundingBox().inflate(16.0D),
-                (recruit) -> recruit.getUUID().equals(this.uuid)
-        ).forEach((recruit) -> CommandEvents.onDismountButton(player, (IRecruitEntity) recruit, 0));
+                (mob) -> mob.getUUID().equals(this.uuid) &&
+                        (mob instanceof AbstractRecruitEntity || mob.getPersistentData().getBoolean("RecruitControlled"))
+        ).forEach(mob -> {
+            MobRecruit recruit = MobRecruit.get(mob);
+            recruit.setShouldMount(false);
+            if (mob.isPassenger()) {
+                mob.stopRiding();
+            }
+        });
     }
 
     public MessageDismountGui fromBytes(FriendlyByteBuf buf) {

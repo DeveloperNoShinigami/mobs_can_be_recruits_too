@@ -48,6 +48,7 @@ public class MobRecruit implements IRecruitMob {
     private static final String KEY_SHOULD_BLOCK = "ShouldBlock";
     private static final String KEY_SHOULD_REST = "ShouldRest";
     private static final String KEY_SHOULD_RANGED = "ShouldRanged";
+    private static final String KEY_LISTEN = "Listen";
     private static final String KEY_ROTATE = "Rotate";
     private static final String KEY_OWNER_ROT = "OwnerRot";
     private static final String KEY_HUNGER = "Hunger";
@@ -615,6 +616,14 @@ public class MobRecruit implements IRecruitMob {
 
     public void setShouldRanged(boolean should) {
         setBoolean(KEY_SHOULD_RANGED, should);
+    }
+
+    public boolean getListen() {
+        return data().contains(KEY_LISTEN) ? getBoolean(KEY_LISTEN) : true;
+    }
+
+    public void setListen(boolean listen) {
+        setBoolean(KEY_LISTEN, listen);
     }
 
     @Override

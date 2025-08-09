@@ -2,20 +2,19 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.MobRecruit;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
-import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.extensions.IForgeEntity;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.*;
-import java.util.function.Function;
 
 public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
     private UUID recruit;
@@ -38,20 +37,22 @@ public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
 
         player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
+                Mob.class,
                 player.getBoundingBox().inflate(32.0D),
-                v -> v.getUUID().equals(this.recruit) && v.isAlive()
-        ).forEach(this::mount);
+                v -> v.getUUID().equals(this.recruit) && v.isAlive() &&
+                        (v instanceof AbstractRecruitEntity || v.getPersistentData().getBoolean("RecruitControlled"))
+        ).forEach(m -> mount(player, m));
     }
 
     @SuppressWarnings({"all"})
-    private void mount(AbstractRecruitEntity recruit) {
-        if (this.back && recruit.getMountUUID() != null) {
-            recruit.shouldMount(true, recruit.getMountUUID());
-        } else if (recruit.getVehicle() == null) {
-            List<Entity> list = recruit.getCommandSenderWorld().getEntitiesOfClass(
+    private void mount(ServerPlayer player, Mob mob) {
+        MobRecruit recruit = MobRecruit.get(mob);
+        if (this.back && mob.getPersistentData().hasUUID("MountUUID")) {
+            recruit.setShouldMount(true);
+        } else if (mob.getVehicle() == null) {
+            List<Entity> list = mob.getCommandSenderWorld().getEntitiesOfClass(
                     Entity.class,
-                    recruit.getBoundingBox().inflate(8),
+                    mob.getBoundingBox().inflate(8),
                     (mount) -> !(mount instanceof AbstractHorse horse &&
                             horse.hasControllingPassenger()) &&
                             RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId())
@@ -61,7 +62,7 @@ public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
             Entity horse = null;
 
             for (Entity entity : list) {
-                double d1 = entity.distanceToSqr(recruit);
+                double d1 = entity.distanceToSqr(mob);
                 if (d0 == -1.0D || d1 < d0) {
                     horse = entity;
                     d0 = d1;
@@ -69,11 +70,12 @@ public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
             }
 
             if (horse == null) {
-                recruit.getOwner().sendSystemMessage(TEXT_NO_MOUNT(recruit.getName().getString()));
+                player.sendSystemMessage(TEXT_NO_MOUNT(mob.getName().getString()));
                 return;
             }
 
-            recruit.shouldMount(true, horse.getUUID());
+            recruit.setShouldMount(true);
+            mob.getPersistentData().putUUID("MountUUID", horse.getUUID());
         }
     }
 
