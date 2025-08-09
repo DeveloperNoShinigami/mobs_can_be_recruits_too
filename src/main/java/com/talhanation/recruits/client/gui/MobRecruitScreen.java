@@ -4,11 +4,16 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.client.gui.DisbandScreen;
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.ControlledMobMenu;
 import com.talhanation.recruits.network.MessageAggroGui;
 import com.talhanation.recruits.network.MessageClearTargetGui;
+import com.talhanation.recruits.network.MessageClearUpkeepGui;
 import com.talhanation.recruits.network.MessageControlledMobGroup;
+import com.talhanation.recruits.network.MessageDismountGui;
 import com.talhanation.recruits.network.MessageFollowGui;
+import com.talhanation.recruits.network.MessageListen;
 import com.talhanation.recruits.network.MessageMountEntityGui;
 import com.talhanation.recruits.network.MessageRenameMob;
 import com.talhanation.recruits.entities.IRecruitEntity;
@@ -22,6 +27,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
@@ -58,6 +64,11 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
     private static final MutableComponent TEXT_FOLLOW = Component.translatable("gui.recruits.inv.text.follow");
     private static final MutableComponent TEXT_WANDER = Component.translatable("gui.recruits.inv.text.wander");
     private static final MutableComponent TEXT_HOLD_POS = Component.translatable("gui.recruits.inv.text.holdPos");
+    private static final MutableComponent TEXT_BACK_TO_POS = Component.translatable("gui.recruits.inv.text.backToPos");
+    private static final MutableComponent TEXT_HOLD_MY_POS = Component.translatable("gui.recruits.inv.text.holdMyPos");
+    private static final MutableComponent TEXT_DISMOUNT = Component.translatable("gui.recruits.inv.text.dismount");
+    private static final MutableComponent TEXT_BACK_TO_MOUNT = Component.translatable("gui.recruits.inv.text.backToMount");
+    private static final MutableComponent TEXT_CLEAR_UPKEEP = Component.translatable("gui.recruits.inv.text.clearUpkeep");
     private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.inv.text.clearTargets");
     private static final MutableComponent TEXT_MOUNT = Component.translatable("gui.recruits.command.text.mount");
 
@@ -70,16 +81,24 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
     private static final MutableComponent TEXT_INFO_RAID = Component.translatable("gui.recruits.inv.info.text.raid");
     private static final MutableComponent TEXT_INFO_PROTECT = Component.translatable("gui.recruits.inv.info.text.protect");
     private static final MutableComponent TEXT_INFO_WORKING = Component.translatable("gui.recruits.inv.info.text.working");
+    private static final MutableComponent TEXT_INFO_LISTEN = Component.translatable("gui.recruits.inv.info.text.listen");
+    private static final MutableComponent TEXT_INFO_IGNORE = Component.translatable("gui.recruits.inv.info.text.ignore");
 
     private static final MutableComponent TOOLTIP_WANDER = Component.translatable("gui.recruits.inv.tooltip.wander");
     private static final MutableComponent TOOLTIP_FOLLOW = Component.translatable("gui.recruits.inv.tooltip.follow");
     private static final MutableComponent TOOLTIP_HOLD_POS = Component.translatable("gui.recruits.inv.tooltip.holdPos");
+    private static final MutableComponent TOOLTIP_BACK_TO_POS = Component.translatable("gui.recruits.inv.tooltip.backToPos");
+    private static final MutableComponent TOOLTIP_HOLD_MY_POS = Component.translatable("gui.recruits.inv.tooltip.holdMyPos");
+    private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.inv.tooltip.dismount");
+    private static final MutableComponent TOOLTIP_BACK_TO_MOUNT = Component.translatable("gui.recruits.inv.tooltip.backToMount");
+    private static final MutableComponent TOOLTIP_CLEAR_UPKEEP = Component.translatable("gui.recruits.inv.tooltip.clearUpkeep");
     private static final MutableComponent TOOLTIP_CLEAR_TARGET = Component.translatable("gui.recruits.inv.tooltip.clearTargets");
     private static final MutableComponent TOOLTIP_MOUNT = Component.translatable("gui.recruits.inv.tooltip.mount");
 
     private final Mob mob;
     private EditBox nameField;
     private Button promoteButton;
+    private Button clearUpkeep;
     private int follow;
     private int aggro;
 
@@ -203,6 +222,66 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
                 });
         buttonHoldPos.setTooltip(Tooltip.create(TOOLTIP_HOLD_POS));
         addRenderableWidget(buttonHoldPos);
+
+        ExtendedButton buttonBackToPos = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_BACK_TO_POS,
+                btn -> {
+                    follow = mob.getPersistentData().getInt("FollowState");
+                    if (follow != 3) {
+                        follow = 3;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, mob.getUUID()));
+                    }
+                });
+        buttonBackToPos.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_POS));
+        addRenderableWidget(buttonBackToPos);
+
+        ExtendedButton buttonHoldMyPos = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_HOLD_MY_POS,
+                btn -> {
+                    follow = mob.getPersistentData().getInt("FollowState");
+                    if (follow != 4) {
+                        follow = 4;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, mob.getUUID()));
+                    }
+                });
+        buttonHoldMyPos.setTooltip(Tooltip.create(TOOLTIP_HOLD_MY_POS));
+        addRenderableWidget(buttonHoldMyPos);
+
+        ExtendedButton buttonDismount = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_DISMOUNT,
+                btn -> {
+                    follow = mob.getPersistentData().getInt("FollowState");
+                    if (follow != 4) {
+                        follow = 4;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageDismountGui(minecraft.player.getUUID(), mob.getUUID()));
+                    }
+                });
+        buttonDismount.setTooltip(Tooltip.create(TOOLTIP_DISMOUNT));
+        addRenderableWidget(buttonDismount);
+
+        ExtendedButton backToMount = addRenderableWidget(new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 6, 80, 20,
+                TEXT_BACK_TO_MOUNT,
+                btn -> Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntityGui(mob.getUUID(), true))));
+        backToMount.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_MOUNT));
+
+        this.clearUpkeep = addRenderableWidget(new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 6, 80, 20,
+                TEXT_CLEAR_UPKEEP,
+                btn -> {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageClearUpkeepGui(mob.getUUID()));
+                    clearUpkeep.active = false;
+                }));
+        this.clearUpkeep.setTooltip(Tooltip.create(TOOLTIP_CLEAR_UPKEEP));
+        this.clearUpkeep.active = mob.getPersistentData().contains("UpkeepUUID") || mob.getPersistentData().contains("UpkeepPosX");
+
+        addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 100, 12, 12, Component.literal("<"),
+                btn -> Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!mob.getPersistentData().getBoolean("Listen"), mob.getUUID()))));
+
+        addRenderableWidget(new ExtendedButton(leftPos + 77 + 81, topPos + 100, 12, 12, Component.literal(">"),
+                btn -> Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!mob.getPersistentData().getBoolean("Listen"), mob.getUUID()))));
+
+        addRenderableWidget(new ExtendedButton(leftPos + 77 + 55, topPos + 4, 40, 12, Component.literal("..."),
+                btn -> {
+                    if (mob instanceof AbstractRecruitEntity recruitEntity) {
+                        minecraft.setScreen(new DisbandScreen(this, recruitEntity, minecraft.player));
+                    }
+                }));
     }
 
     @Override
@@ -226,16 +305,19 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
         int l = 32;
         int gap = 42;
 
-        guiGraphics.drawString(font, "Lvl.:", k, l, fontColor, false);
-        guiGraphics.drawString(font, String.valueOf(level), k + gap, l, fontColor, false);
-        guiGraphics.drawString(font, "Exp.:", k, l + 10, fontColor, false);
-        guiGraphics.drawString(font, String.valueOf(xp), k + gap, l + 10, fontColor, false);
-        guiGraphics.drawString(font, "Morale:", k, l + 20, fontColor, false);
-        guiGraphics.drawString(font, String.valueOf((int) morale), k + gap, l + 20, fontColor, false);
-        guiGraphics.drawString(font, "Hunger:", k, l + 30, fontColor, false);
-        guiGraphics.drawString(font, String.valueOf((int) hunger), k + gap, l + 30, fontColor, false);
-        guiGraphics.drawString(font, "Kills:", k, l + 40, fontColor, false);
-        guiGraphics.drawString(font, String.valueOf(kills), k + gap, l + 40, fontColor, false);
+        int health = Mth.ceil(mob.getHealth());
+        guiGraphics.drawString(font, "Health:", k, l, fontColor, false);
+        guiGraphics.drawString(font, String.valueOf(health), k + gap, l, fontColor, false);
+        guiGraphics.drawString(font, "Lvl.:", k, l + 10, fontColor, false);
+        guiGraphics.drawString(font, String.valueOf(level), k + gap, l + 10, fontColor, false);
+        guiGraphics.drawString(font, "Exp.:", k, l + 20, fontColor, false);
+        guiGraphics.drawString(font, String.valueOf(xp), k + gap, l + 20, fontColor, false);
+        guiGraphics.drawString(font, "Morale:", k, l + 30, fontColor, false);
+        guiGraphics.drawString(font, String.valueOf((int) morale), k + gap, l + 30, fontColor, false);
+        guiGraphics.drawString(font, "Hunger:", k, l + 40, fontColor, false);
+        guiGraphics.drawString(font, String.valueOf((int) hunger), k + gap, l + 40, fontColor, false);
+        guiGraphics.drawString(font, "Kills:", k, l + 50, fontColor, false);
+        guiGraphics.drawString(font, String.valueOf(kills), k + gap, l + 50, fontColor, false);
         guiGraphics.pose().popPose();
 
         int k2 = 79;
@@ -261,6 +343,11 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
         };
         int fnt = this.aggro == 3 ? 16733525 : fontColor;
         guiGraphics.drawString(font, aggroText, k2 + 15, l2 + 56 + 15, fnt, false);
+
+        boolean listenFlag = mob.getPersistentData().getBoolean("Listen");
+        String listenText = listenFlag ? TEXT_INFO_LISTEN.getString() : TEXT_INFO_IGNORE.getString();
+        int fnt2 = listenFlag ? fontColor : 16733525;
+        guiGraphics.drawString(font, listenText, k2 + 15, l2 + 56 + 28, fnt2, false);
     }
 
     @Override
