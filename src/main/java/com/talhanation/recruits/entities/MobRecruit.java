@@ -89,6 +89,9 @@ public class MobRecruit implements IRecruitMob {
             }
         };
         reloadInventory();
+        if (!mob.getPersistentData().contains(KEY_SHOULD_RANGED)) {
+            setBoolean(KEY_SHOULD_RANGED, true);
+        }
     }
 
     private CompoundTag data() {

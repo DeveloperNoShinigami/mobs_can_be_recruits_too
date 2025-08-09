@@ -13,6 +13,7 @@ import com.talhanation.recruits.network.MessageClearUpkeepGui;
 import com.talhanation.recruits.network.MessageControlledMobGroup;
 import com.talhanation.recruits.network.MessageDismountGui;
 import com.talhanation.recruits.network.MessageFollowGui;
+import com.talhanation.recruits.network.MessageCombatFlagGui;
 import com.talhanation.recruits.network.MessageListen;
 import com.talhanation.recruits.network.MessageMountEntityGui;
 import com.talhanation.recruits.network.MessageRenameMob;
@@ -260,6 +261,17 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
                 TEXT_BACK_TO_MOUNT,
                 btn -> Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntityGui(mob.getUUID(), true))));
         backToMount.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_MOUNT));
+
+        int combatPos = zeroLeftPos + 90;
+        addRenderableWidget(new ExtendedButton(combatPos, zeroTopPos + (20 + topPosGab) * 0, 80, 20, Component.literal("Ranged"),
+                btn -> Main.SIMPLE_CHANNEL.sendToServer(new MessageCombatFlagGui(mob.getUUID(), 0,
+                        !mob.getPersistentData().getBoolean("ShouldRanged")))));
+        addRenderableWidget(new ExtendedButton(combatPos, zeroTopPos + (20 + topPosGab) * 1, 80, 20, Component.literal("Block"),
+                btn -> Main.SIMPLE_CHANNEL.sendToServer(new MessageCombatFlagGui(mob.getUUID(), 1,
+                        !mob.getPersistentData().getBoolean("ShouldBlock")))));
+        addRenderableWidget(new ExtendedButton(combatPos, zeroTopPos + (20 + topPosGab) * 2, 80, 20, Component.literal("Rest"),
+                btn -> Main.SIMPLE_CHANNEL.sendToServer(new MessageCombatFlagGui(mob.getUUID(), 2,
+                        !mob.getPersistentData().getBoolean("ShouldRest")))));
 
         this.clearUpkeep = addRenderableWidget(new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 6, 80, 20,
                 TEXT_CLEAR_UPKEEP,
