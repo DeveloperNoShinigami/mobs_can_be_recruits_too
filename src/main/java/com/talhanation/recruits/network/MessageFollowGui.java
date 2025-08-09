@@ -1,6 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.IRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
@@ -9,6 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Mob;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -39,7 +41,26 @@ public class MessageFollowGui implements Message<MessageFollowGui> {
                         m instanceof AbstractRecruitEntity recruit
                                 ? recruit.isEffectedByCommand(player.getUUID(), 0)
                                 : m.getPersistentData().getBoolean("RecruitControlled"))
-        ).forEach(m -> CommandEvents.onMovementCommandGUI(IRecruitEntity.of(m), this.state));
+        ).forEach(m -> {
+            CommandEvents.onMovementCommandGUI(IRecruitEntity.of(m), this.state);
+
+            int aggroState;
+            int followState;
+            boolean listen;
+
+            if (m instanceof AbstractRecruitEntity recruit) {
+                aggroState = recruit.getState();
+                followState = recruit.getFollowState();
+                listen = recruit.getListen();
+            } else {
+                aggroState = m.getPersistentData().getInt("AggroState");
+                followState = m.getPersistentData().getInt("FollowState");
+                listen = m.getPersistentData().getBoolean("Listen");
+            }
+
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
+                    new MessageSyncMobFlags(m.getUUID(), aggroState, followState, listen, m.getClass().getName()));
+        });
     }
 
     public MessageFollowGui fromBytes(FriendlyByteBuf buf) {
