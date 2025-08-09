@@ -56,5 +56,10 @@ its code, treat it as an addon. The basic steps are:
 5. Distribute the addon as its own jar and note the dependency on the base mod
    in the documentation.
 
+## Mob Recruit Parity
+- Whenever adding a feature to `AbstractRecruitEntity` or its GUI, mirror it in `MobRecruit` and the corresponding network message.
+- Use `./gradlew build`, `./gradlew test`, and `./gradlew check` before committing.
+- Prefer `rg` for code search; avoid `ls -R` or `grep -R`.
+
 
 This overview provides a starting point for building or scripting an automated agent to assist with Minecraft modding tasks.
