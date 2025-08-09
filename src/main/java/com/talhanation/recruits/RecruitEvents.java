@@ -1234,12 +1234,12 @@ public class RecruitEvents {
                 extra[slot] = ItemStack.of(ct);
             }
         }
-        mob.setItemSlot(EquipmentSlot.HEAD, getOrEmpty(extra,0));
-        mob.setItemSlot(EquipmentSlot.CHEST, getOrEmpty(extra,1));
-        mob.setItemSlot(EquipmentSlot.LEGS, getOrEmpty(extra,2));
-        mob.setItemSlot(EquipmentSlot.FEET, getOrEmpty(extra,3));
-        mob.setItemSlot(EquipmentSlot.OFFHAND, getOrEmpty(extra,4));
-        mob.setItemSlot(EquipmentSlot.MAINHAND, getOrEmpty(extra,5));
+        if (extra[0] != null) mob.setItemSlot(EquipmentSlot.HEAD, extra[0]);
+        if (extra[1] != null) mob.setItemSlot(EquipmentSlot.CHEST, extra[1]);
+        if (extra[2] != null) mob.setItemSlot(EquipmentSlot.LEGS, extra[2]);
+        if (extra[3] != null) mob.setItemSlot(EquipmentSlot.FEET, extra[3]);
+        if (extra[4] != null) mob.setItemSlot(EquipmentSlot.OFFHAND, extra[4]);
+        if (extra[5] != null) mob.setItemSlot(EquipmentSlot.MAINHAND, extra[5]);
         if(tag.contains("MobData")){
             CompoundTag data = tag.getCompound("MobData");
             for(String key : ControlledMobMenu.EXTRA_KEYS){
@@ -1249,10 +1249,6 @@ public class RecruitEvents {
         if (!(mob instanceof IRecruitMob)) {
             MobRecruit.get(mob).reloadInventory();
         }
-    }
-
-    private static ItemStack getOrEmpty(ItemStack[] arr, int idx) {
-        return idx >= 0 && idx < arr.length && arr[idx] != null ? arr[idx] : ItemStack.EMPTY;
     }
 
     public static void dropControlledMobInventory(Mob mob) {
