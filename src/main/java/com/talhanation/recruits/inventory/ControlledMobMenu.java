@@ -90,7 +90,7 @@ public class ControlledMobMenu extends ContainerBase {
     private void saveInventory(){
         CompoundTag tag = mob.getPersistentData();
         ListTag list = new ListTag();
-        for(int i=6;i<mobInventory.getContainerSize();i++){
+        for(int i=0;i<mobInventory.getContainerSize();i++){
             ItemStack stack = mobInventory.getItem(i);
             if(!stack.isEmpty()){
                 CompoundTag ct = new CompoundTag();
