@@ -124,6 +124,7 @@ public class Main {
                 MessageUpkeepPos.class,
                 MessageStrategicFire.class,
                 MessageShields.class,
+                MessageCombatFlagGui.class,
                 MessageDebugGui.class,
                 MessageRenameMob.class,
                 MessageControlledMobGroup.class,
