@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.BowmanEntity;
 import net.minecraft.core.BlockPos;
@@ -11,6 +12,9 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -79,7 +83,32 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity> extends Goal {
     }
 
     private boolean hasArrows(){
-        return !consumeArrows || this.recruit.getInventory().hasAnyMatching(item -> item.is(ItemTags.ARROWS));
+        if(!consumeArrows)
+            return true;
+
+        ItemStack weapon = this.recruit.getMainHandItem();
+
+        if(weapon.getItem() instanceof ProjectileWeaponItem projectileWeaponItem){
+            // Attempt to use vanilla projectile lookup first
+            ItemStack ammo = ProjectileWeaponItem.getHeldProjectile(this.recruit, projectileWeaponItem.getAllSupportedProjectiles());
+            if(!ammo.isEmpty())
+                return true;
+
+            // Check custom firearms ammo if weapon matches known guns
+            if(IWeapon.isMusketModWeapon(weapon) || IWeapon.isCGMWeapon(weapon))
+                return this.recruit.getInventory().hasAnyMatching(RecruitRangedBowAttackGoal::isCustomAmmoItem);
+        }
+
+        // Fallback to vanilla arrows check
+        return this.recruit.getInventory().hasAnyMatching(item -> item.is(ItemTags.ARROWS));
+    }
+
+    private static boolean isCustomAmmoItem(ItemStack stack){
+        if(stack.getDescriptionId().contains("cartridge") || stack.getDescriptionId().contains("bullet"))
+            return true;
+
+        ResourceLocation key = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        return key != null && RecruitsServerConfig.AdditionalAmmoItems.get().contains(key.toString());
     }
 
     public boolean canContinueToUse() {
