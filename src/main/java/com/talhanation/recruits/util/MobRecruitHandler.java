@@ -63,22 +63,22 @@ public class MobRecruitHandler implements RecruitHandler {
             String name = mob.getName().getString();
             int state = nbt.getInt("FollowState");
             switch (state) {
-                // default includes 0,2,3,5,... -> switch to follow
+                // default includes 0,3,4,5,... -> switch to follow
                 default -> {
                     nbt.putInt("FollowState", 1);
                     clearHoldPos(nbt);
                     player.sendSystemMessage(Component.translatable("chat.recruits.text.follow", name));
                 }
-                // follow -> hold at player position
+                // follow -> hold at current mob position
                 case 1 -> {
-                    nbt.putInt("FollowState", 4);
-                    nbt.putDouble("HoldX", player.getX());
-                    nbt.putDouble("HoldY", player.getY());
-                    nbt.putDouble("HoldZ", player.getZ());
+                    nbt.putInt("FollowState", 2);
+                    nbt.putDouble("HoldX", mob.getX());
+                    nbt.putDouble("HoldY", mob.getY());
+                    nbt.putDouble("HoldZ", mob.getZ());
                     player.sendSystemMessage(Component.translatable("chat.recruits.text.holdPos", name));
                 }
                 // hold -> wander
-                case 4 -> {
+                case 2 -> {
                     nbt.putInt("FollowState", 0);
                     clearHoldPos(nbt);
                     player.sendSystemMessage(Component.translatable("chat.recruits.text.wander", name));
