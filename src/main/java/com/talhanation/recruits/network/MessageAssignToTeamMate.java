@@ -5,6 +5,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Mob;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -31,11 +32,15 @@ public class MessageAssignToTeamMate implements Message<MessageAssignToTeamMate>
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer serverPlayer = context.getSender();
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
+        List<Mob> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(
+                Mob.class,
+                context.getSender().getBoundingBox().inflate(64.0D),
+                mob -> mob instanceof AbstractRecruitEntity || mob.getPersistentData().getBoolean("RecruitControlled")
+        );
 
-        for (AbstractRecruitEntity recruit : list) {
-            if(recruit.getUUID().equals(this.recruit)){
-                TeamEvents.assignToTeamMate(serverPlayer, newOwner, recruit);
+        for (Mob mob : list) {
+            if (mob.getUUID().equals(this.recruit)) {
+                TeamEvents.assignToTeamMate(serverPlayer, newOwner, mob);
                 break;
             }
         }
