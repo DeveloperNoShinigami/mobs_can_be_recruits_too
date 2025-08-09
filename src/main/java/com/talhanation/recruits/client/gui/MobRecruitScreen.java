@@ -107,14 +107,15 @@ public class MobRecruitScreen extends AbstractRecruitScreen<ControlledMobMenu> {
         addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos, 70, 20,
                 Component.literal("Commands"),
                 button -> CommandEvents.openCommandScreen(minecraft.player)));
-        promoteButton = addRenderableWidget(new ExtendedButton(leftPos + imageWidth + 5, topPos + 24, 70, 20,
-                TEXT_PROMOTE,
-                btn -> RecruitEvents.openControlledMobPromoteScreen(minecraft.player, mob)));
-        promoteButton.setTooltip(Tooltip.create(TOOLTIP_PROMOTE));
 
         int zeroLeftPos = leftPos + 180;
         int zeroTopPos = topPos + 10;
         int topPosGab = 5;
+
+        promoteButton = addRenderableWidget(new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 8, 80, 20,
+                TEXT_PROMOTE,
+                btn -> RecruitEvents.openControlledMobPromoteScreen(minecraft.player, mob)));
+        promoteButton.setTooltip(Tooltip.create(TOOLTIP_PROMOTE));
 
         ExtendedButton buttonPassive = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE,
                 btn -> {
