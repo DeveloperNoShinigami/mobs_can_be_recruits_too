@@ -73,6 +73,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue UniversalMobControl;
     public static ForgeConfigSpec.BooleanValue ReplaceMobAI;
     public static ForgeConfigSpec.ConfigValue<List<String>> AdditionalGunItems;
+    public static ForgeConfigSpec.ConfigValue<List<String>> AdditionalAmmoItems;
     public static ForgeConfigSpec.BooleanValue PerMobCurrency;
     public static ForgeConfigSpec.ConfigValue<List<String>> MobCurrencyMap;
     public static ForgeConfigSpec.ConfigValue<List<String>> ControlledMobIds;
@@ -752,6 +753,14 @@ public class RecruitsServerConfig {
                         \tdefault: []""")
                 .worldRestart()
                 .define("AdditionalGunItems", new ArrayList<>());
+
+        AdditionalAmmoItems = BUILDER.comment("""
+                        Additional ammo items from other mods treated as valid ammunition.
+                        Provide a list of item registry names.
+                        \t(takes effect after restart)
+                        \tdefault: []""")
+                .worldRestart()
+                .define("AdditionalAmmoItems", new ArrayList<>());
 
         PerMobCurrency = BUILDER.comment("""
                         Use different hire currency for specific mobs. If false, uses global RecruitCurrency.
