@@ -10,6 +10,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.npc.InventoryCarrier;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -40,6 +41,8 @@ public class MobRecruit implements IRecruitMob {
     private static final String KEY_HOLD_Y = "HoldY";
     private static final String KEY_HOLD_Z = "HoldZ";
     private static final String KEY_SHOULD_HOLD_POS = "ShouldHoldPos";
+    private static final String KEY_SHOULD_PROTECT = "ShouldProtect";
+    private static final String KEY_SHOULD_MOVE_POS = "ShouldMovePos";
     private static final String KEY_FLEEING = "Fleeing";
     private static final String KEY_SHOULD_MOUNT = "ShouldMount";
     private static final String KEY_ROTATE = "Rotate";
@@ -245,6 +248,58 @@ public class MobRecruit implements IRecruitMob {
     }
 
     public void setFollowState(int state) {
+        switch (state) {
+            case 0, 6 -> {
+                setShouldFollow(false);
+                setBoolean(KEY_SHOULD_HOLD_POS, false);
+                setBoolean(KEY_SHOULD_PROTECT, false);
+                setBoolean(KEY_SHOULD_MOVE_POS, false);
+            }
+            case 1 -> {
+                setShouldFollow(true);
+                setBoolean(KEY_SHOULD_HOLD_POS, false);
+                setBoolean(KEY_SHOULD_PROTECT, false);
+                setBoolean(KEY_SHOULD_MOVE_POS, false);
+            }
+            case 2 -> {
+                setShouldFollow(false);
+                setBoolean(KEY_SHOULD_HOLD_POS, true);
+                setBoolean(KEY_SHOULD_PROTECT, false);
+                setBoolean(KEY_SHOULD_MOVE_POS, false);
+                setDouble(KEY_HOLD_X, mob.getX());
+                setDouble(KEY_HOLD_Y, mob.getY());
+                setDouble(KEY_HOLD_Z, mob.getZ());
+            }
+            case 3 -> {
+                setShouldFollow(false);
+                setBoolean(KEY_SHOULD_HOLD_POS, true);
+                setBoolean(KEY_SHOULD_PROTECT, false);
+                setBoolean(KEY_SHOULD_MOVE_POS, false);
+            }
+            case 4 -> {
+                setShouldFollow(false);
+                setBoolean(KEY_SHOULD_HOLD_POS, true);
+                setBoolean(KEY_SHOULD_PROTECT, false);
+                setBoolean(KEY_SHOULD_MOVE_POS, false);
+                UUID owner = getOwnerUUID();
+                if (owner != null) {
+                    Player player = mob.level().getPlayerByUUID(owner);
+                    if (player != null) {
+                        setDouble(KEY_HOLD_X, player.getX());
+                        setDouble(KEY_HOLD_Y, player.getY());
+                        setDouble(KEY_HOLD_Z, player.getZ());
+                    }
+                }
+                state = 3;
+            }
+            case 5 -> {
+                setShouldFollow(false);
+                setBoolean(KEY_SHOULD_HOLD_POS, false);
+                setBoolean(KEY_SHOULD_PROTECT, true);
+                setBoolean(KEY_SHOULD_MOVE_POS, false);
+            }
+        }
+
         setInt(KEY_FOLLOW_STATE, state);
     }
 
