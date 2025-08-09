@@ -42,6 +42,11 @@ public class MobRecruit implements IRecruitMob {
     private static final String KEY_SHOULD_HOLD_POS = "ShouldHoldPos";
     private static final String KEY_FLEEING = "Fleeing";
     private static final String KEY_SHOULD_MOUNT = "ShouldMount";
+    private static final String KEY_SHOULD_MOVE_POS = "ShouldMovePos";
+    private static final String KEY_SHOULD_PROTECT = "ShouldProtect";
+    private static final String KEY_SHOULD_BLOCK = "ShouldBlock";
+    private static final String KEY_SHOULD_REST = "ShouldRest";
+    private static final String KEY_SHOULD_RANGED = "ShouldRanged";
     private static final String KEY_ROTATE = "Rotate";
     private static final String KEY_OWNER_ROT = "OwnerRot";
     private static final String KEY_HUNGER = "Hunger";
@@ -486,9 +491,21 @@ public class MobRecruit implements IRecruitMob {
         return null;
     }
 
+    public boolean getShouldMovePos() {
+        return getBoolean(KEY_SHOULD_MOVE_POS);
+    }
+
+    public void setShouldMovePos(boolean should) {
+        setBoolean(KEY_SHOULD_MOVE_POS, should);
+    }
+
     @Override
     public boolean getShouldHoldPos() {
         return getBoolean(KEY_SHOULD_HOLD_POS);
+    }
+
+    public void setShouldHoldPos(boolean should) {
+        setBoolean(KEY_SHOULD_HOLD_POS, should);
     }
 
     @Override
@@ -509,6 +526,42 @@ public class MobRecruit implements IRecruitMob {
     @Override
     public boolean getShouldMount() {
         return getBoolean(KEY_SHOULD_MOUNT);
+    }
+
+    public void setShouldMount(boolean should) {
+        setBoolean(KEY_SHOULD_MOUNT, should);
+    }
+
+    public boolean getShouldProtect() {
+        return getBoolean(KEY_SHOULD_PROTECT);
+    }
+
+    public void setShouldProtect(boolean should) {
+        setBoolean(KEY_SHOULD_PROTECT, should);
+    }
+
+    public boolean getShouldBlock() {
+        return getBoolean(KEY_SHOULD_BLOCK);
+    }
+
+    public void setShouldBlock(boolean should) {
+        setBoolean(KEY_SHOULD_BLOCK, should);
+    }
+
+    public boolean getShouldRest() {
+        return getBoolean(KEY_SHOULD_REST);
+    }
+
+    public void setShouldRest(boolean should) {
+        setBoolean(KEY_SHOULD_REST, should);
+    }
+
+    public boolean getShouldRanged() {
+        return getBoolean(KEY_SHOULD_RANGED);
+    }
+
+    public void setShouldRanged(boolean should) {
+        setBoolean(KEY_SHOULD_RANGED, should);
     }
 
     @Override
