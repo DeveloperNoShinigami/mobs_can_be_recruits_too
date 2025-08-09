@@ -205,7 +205,15 @@ public class MobRecruit implements IRecruitMob {
             inventory.setItem(5, mob.getItemBySlot(EquipmentSlot.MAINHAND));
         }
         loading = false;
-        saveInventory();
+    }
+
+    public void syncEquipmentFromInventory() {
+        mob.setItemSlot(EquipmentSlot.HEAD, inventory.getItem(0));
+        mob.setItemSlot(EquipmentSlot.CHEST, inventory.getItem(1));
+        mob.setItemSlot(EquipmentSlot.LEGS, inventory.getItem(2));
+        mob.setItemSlot(EquipmentSlot.FEET, inventory.getItem(3));
+        mob.setItemSlot(EquipmentSlot.OFFHAND, inventory.getItem(4));
+        mob.setItemSlot(EquipmentSlot.MAINHAND, inventory.getItem(5));
     }
 
     // ---------------------------------------------------------------------

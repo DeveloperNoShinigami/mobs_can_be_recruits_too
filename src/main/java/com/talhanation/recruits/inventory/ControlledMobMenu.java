@@ -6,7 +6,6 @@ import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.IRecruitMob;
 import com.talhanation.recruits.entities.MobRecruit;
-import com.talhanation.recruits.RecruitEvents;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -115,7 +114,7 @@ public class ControlledMobMenu extends ContainerBase {
             RecruitEvents.applyControlledMobGoals(pathfinderMob);
         }
         if (!(mob instanceof IRecruitMob)) {
-            MobRecruit.get(mob).reloadInventory();
+            MobRecruit.get(mob).syncEquipmentFromInventory();
         }
         if (mob instanceof PathfinderMob pathfinderMob) {
             RecruitEvents.refreshControlledMobGoals(pathfinderMob);
