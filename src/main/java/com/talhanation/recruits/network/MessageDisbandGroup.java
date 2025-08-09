@@ -1,9 +1,14 @@
 package com.talhanation.recruits.network;
 
+import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.MobRecruit;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Mob;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -32,15 +37,20 @@ public class MessageDisbandGroup implements Message<MessageDisbandGroup> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        List<AbstractRecruitEntity> list = player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                player.getBoundingBox().inflate(100D)
+        List<Mob> list = player.getCommandSenderWorld().getEntitiesOfClass(
+                Mob.class,
+                player.getBoundingBox().inflate(100D),
+                mob -> mob instanceof AbstractRecruitEntity || mob.getPersistentData().getBoolean("RecruitControlled")
         );
         int group = -1;
 
-        for (AbstractRecruitEntity recruit1 : list) {
+        for (Mob recruit1 : list) {
             if (recruit1.getUUID().equals(recruit)) {
-                group = recruit1.getGroup();
+                if (recruit1 instanceof AbstractRecruitEntity r) {
+                    group = r.getGroup();
+                } else {
+                    group = MobRecruit.get(recruit1).getGroup();
+                }
                 break;
             }
         }
@@ -49,10 +59,32 @@ public class MessageDisbandGroup implements Message<MessageDisbandGroup> {
             return;
         }
 
-        for (AbstractRecruitEntity recruit : list) {
-            if (owner.equals(recruit.getOwnerUUID()) && recruit.getGroup() == group) {
-                recruit.disband(context.getSender(), keepTeam, true);
+        for (Mob mob : list) {
+            if (mob instanceof AbstractRecruitEntity recruit) {
+                if (owner.equals(recruit.getOwnerUUID()) && recruit.getGroup() == group) {
+                    recruit.disband(context.getSender(), keepTeam, true);
+                }
+            } else {
+                MobRecruit recruit = MobRecruit.get(mob);
+                UUID mobOwner = recruit.getOwnerUUID();
+                if (mobOwner != null && mobOwner.equals(owner) && recruit.getGroup() == group) {
+                    disband(mob, player, keepTeam);
+                }
             }
+        }
+    }
+
+    private static void disband(Mob mob, ServerPlayer player, boolean keepTeam) {
+        MobRecruit recruit = MobRecruit.get(mob);
+        UUID owner = recruit.getOwnerUUID();
+        if (owner != null) {
+            RecruitEvents.recruitsPlayerUnitManager.removeRecruits(owner, 1);
+        }
+        mob.setTarget(null);
+        recruit.setIsOwned(false);
+        recruit.setOwnerUUID(null);
+        if (!keepTeam && mob.getTeam() != null) {
+            TeamEvents.removeRecruitFromTeam(mob, mob.getTeam(), (ServerLevel) mob.level());
         }
     }
 

@@ -4,7 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.player.PlayersList;
 import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import net.minecraft.world.entity.Mob;
 import com.talhanation.recruits.network.MessageAssignGroupToTeamMate;
 import com.talhanation.recruits.network.MessageAssignToTeamMate;
 import com.talhanation.recruits.network.MessageDisband;
@@ -13,7 +13,6 @@ import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -27,7 +26,7 @@ public class DisbandScreen extends RecruitsScreenBase {
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
     private static final Component TITLE = Component.translatable("gui.recruits.more_screen.title");
     private Player player;
-    private AbstractRecruitEntity recruit;
+    private Mob recruit;
     private static final MutableComponent DISBAND = Component.translatable("gui.recruits.inv.text.disband");
     private static final MutableComponent DISBAND_GROUP = Component.translatable("gui.recruits.inv.text.disbandGroup");
     private static final MutableComponent TOOLTIP_DISBAND = Component.translatable("gui.recruits.inv.tooltip.disband");
@@ -38,7 +37,7 @@ public class DisbandScreen extends RecruitsScreenBase {
     private static final MutableComponent TEAM_MATE = Component.translatable("gui.recruits.team.assignNewOwner");
     private static final MutableComponent TEAM_MATE_GROUP = Component.translatable("gui.recruits.team.assignGroupNewOwner");
 
-    public DisbandScreen(Screen parent, AbstractRecruitEntity recruit, Player player) {
+    public DisbandScreen(Screen parent, Mob recruit, Player player) {
         super(TITLE, 195,160);
         this.player = player;
         this.recruit = recruit;

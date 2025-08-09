@@ -3,6 +3,7 @@ package com.talhanation.recruits;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.IRecruitEntity;
+import com.talhanation.recruits.entities.MobRecruit;
 import com.talhanation.recruits.inventory.*;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
@@ -577,6 +578,65 @@ public class TeamEvents {
                 playerNotFound = true;
 
             if(playerNotFound) oldOwner.sendSystemMessage(Component.translatable("chat.recruits.team.assignNewOwnerNotFound"));
+        }
+    }
+
+    /**
+     * Variant of {@link #assignToTeamMate(ServerPlayer, UUID, AbstractRecruitEntity)} that also
+     * supports vanilla mobs wrapped by {@link MobRecruit}. This allows ownership of controlled
+     * mobs to be transferred to another player on the same team.
+     */
+    public static void assignToTeamMate(ServerPlayer oldOwner, UUID newOwnerUUID, Mob recruit) {
+        if (recruit instanceof AbstractRecruitEntity recruitEntity) {
+            assignToTeamMate(oldOwner, newOwnerUUID, recruitEntity);
+            return;
+        }
+
+        ServerLevel level = (ServerLevel) oldOwner.getCommandSenderWorld();
+        Team team = oldOwner.getTeam();
+
+        if (team != null) {
+            Collection<String> list = team.getPlayers().stream().toList();
+            List<ServerPlayer> playerList = level.players();
+
+            boolean playerNotFound = false;
+            ServerPlayer newOwner = playerList.stream()
+                    .filter(player -> player.getUUID().equals(newOwnerUUID))
+                    .findFirst().orElse(null);
+
+            if (newOwner != null) {
+                if (list.contains(newOwner.getName().getString())) {
+
+                    if (!RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(team.getName(), newOwnerUUID)) {
+                        oldOwner.sendSystemMessage(Component.translatable("chat.recruits.team.assignNewOwnerLimitReached"));
+                        return;
+                    }
+
+                    MobRecruit recruitWrapper = MobRecruit.get(recruit);
+                    UUID oldOwnerUUID = recruitWrapper.getOwnerUUID();
+                    if (oldOwnerUUID != null) {
+                        RecruitEvents.recruitsPlayerUnitManager.removeRecruits(oldOwnerUUID, 1);
+                    }
+
+                    recruitWrapper.setIsOwned(false);
+                    recruitWrapper.setOwnerUUID(null);
+
+                    Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> newOwner),
+                            new MessageToClientSetToast(0, oldOwner.getName().getString()));
+
+                    recruitWrapper.setOwnerUUID(newOwner.getUUID());
+                    recruitWrapper.setIsOwned(true);
+                    RecruitEvents.recruitsPlayerUnitManager.addRecruits(newOwner.getUUID(), 1);
+                } else {
+                    playerNotFound = true;
+                }
+            } else {
+                playerNotFound = true;
+            }
+
+            if (playerNotFound) {
+                oldOwner.sendSystemMessage(Component.translatable("chat.recruits.team.assignNewOwnerNotFound"));
+            }
         }
     }
 

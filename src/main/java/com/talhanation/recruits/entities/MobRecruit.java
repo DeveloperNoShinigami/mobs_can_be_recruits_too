@@ -45,8 +45,6 @@ public class MobRecruit implements IRecruitMob {
     private static final String KEY_SHOULD_MOVE_POS = "ShouldMovePos";
     private static final String KEY_FLEEING = "Fleeing";
     private static final String KEY_SHOULD_MOUNT = "ShouldMount";
-    private static final String KEY_SHOULD_MOVE_POS = "ShouldMovePos";
-    private static final String KEY_SHOULD_PROTECT = "ShouldProtect";
     private static final String KEY_SHOULD_BLOCK = "ShouldBlock";
     private static final String KEY_SHOULD_REST = "ShouldRest";
     private static final String KEY_SHOULD_RANGED = "ShouldRanged";
